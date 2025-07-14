@@ -11,30 +11,60 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 
 ## Infrastructure Components
 
+### Foundation Components (Managed Outside Flux)
+- **Storage CSI**: Longhorn for persistent volumes - *Chart version >=1.5.0* - **Helmfile managed**
+- **Object Storage**: MinIO for S3-compatible storage - *Operator/Tenant v7.1.1* - **Helmfile managed**
+
+### GitOps Managed Components (Flux CD)
 - **Kubernetes**: Single-node cluster (assumes K3s) - *Tested on v1.32.6+k3s1*
 - **GitOps**: Flux CD for continuous deployment
 - **Load Balancer**: MetalLB with configurable IP ranges - *Uses v1beta1 API*
-- **Storage**: Longhorn CSI for persistent volumes - *Chart version >=1.5.0*
 - **Certificates**: cert-manager for TLS certificate management - *Chart version >=1.13.0*
-- **Object Storage**: MinIO managed via Helmfile - *Operator/Tenant v7.1.1*
+- **Ingress**: HAProxy Ingress Controller for HTTP/HTTPS routing - *Chart version >=1.33.5*
 - **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards - *kube-prometheus-stack v61.3.2, Grafana v8.4.2*
+
+## Architecture Decisions
+
+### Storage Foundation Strategy
+
+**Core storage components (Longhorn CSI and MinIO object storage) are intentionally managed outside of Flux using Helmfile for high availability reasons:**
+
+**Why Storage is Foundation-First:**
+- **Bootstrap Independence**: Storage must be available before GitOps can function reliably
+- **Circular Dependency Prevention**: Flux may need persistent storage for its own operations
+- **Recovery Resilience**: If Flux fails, storage remains operational for manual recovery
+- **Stability**: Core storage should not be subject to GitOps experimentation or configuration drift
+
+**What's Managed Where:**
+- **Foundation (Helmfile)**: Longhorn CSI, MinIO (storage that everything depends on)
+- **GitOps (Flux)**: MetalLB, cert-manager, HAProxy, monitoring (services that can recover from removal)
+
+**Benefits:**
+- **High Availability**: Storage foundation remains stable during GitOps operations
+- **Faster Recovery**: Manual storage deployment when GitOps is compromised
+- **Clear Separation**: Infrastructure foundation vs. application services
+- **Operational Safety**: Critical storage protected from accidental GitOps changes
 
 ## Repository Structure
 
 ```
 homelab-foundations/
 ├── clusters/
-│   └── um890/                    # Cluster-specific configurations
+│   └── um890/                    # Cluster-specific configurations (Flux managed)
 │       ├── flux-system/          # Flux bootstrap manifests
 │       ├── namespaces.yaml       # Namespace definitions
 │       ├── metallb/              # MetalLB configuration
-│       ├── longhorn/             # Longhorn Helm release
 │       ├── cert-manager/         # Certificate management
+│       ├── haproxy-ingress/      # HAProxy Ingress Controller
 │       ├── monitoring/           # Prometheus + Grafana stack
 │       └── kustomization.yaml    # Main cluster kustomization
 ├── infrastructure/
 │   └── helm-repositories/        # Helm repository definitions
-├── minio/                        # MinIO managed via Helmfile
+├── longhorn/                     # Longhorn CSI (Foundation - Helmfile managed)
+│   ├── helmfile.yaml            # Longhorn deployment configuration
+│   ├── longhorn-values.yaml     # Longhorn Helm values
+│   └── README.md                # Longhorn documentation
+├── minio/                        # MinIO Object Storage (Foundation - Helmfile managed)
 │   ├── helmfile.yaml            # MinIO operator + tenant deployment
 │   ├── tenant-values.yaml       # MinIO tenant configuration
 │   └── README.md                 # MinIO-specific documentation
@@ -50,13 +80,14 @@ homelab-foundations/
 
 1. **Fork this repository** to your GitHub account
 2. **Customize** network ranges and credentials for your environment
-3. **Bootstrap Flux** to enable GitOps management
-4. **Deploy MinIO** using Helmfile for object storage
+3. **Deploy Foundation Storage** using Helmfile (Longhorn CSI + MinIO)
+4. **Bootstrap Flux** to enable GitOps management
 5. **Enjoy** your fully automated homelab infrastructure!
 
 ### Key Files to Customize
 
 - `clusters/um890/metallb/metallb.yaml` - Update IP ranges for your network
+- `longhorn/longhorn-values.yaml` - Configure storage paths and resource limits
 - `minio/tenant-values.yaml` - Change MinIO credentials and resource limits
 - `clusters/um890/` - Rename directory to match your cluster name
 

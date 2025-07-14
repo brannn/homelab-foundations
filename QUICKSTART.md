@@ -1,13 +1,15 @@
 # Homelab Foundations - Quick Start Guide
 
 **Version**: 1.0  
-**Date**: 2025-07-13  
+**Date**: 2025-07-14
 **Author**: Community Contributors  
 **Status**: Active
 
 ## Overview
 
-This guide will get you from zero to a fully functional GitOps-managed homelab in under 30 minutes. You'll have Kubernetes with Flux, MetalLB load balancing, Longhorn storage, MinIO object storage, and comprehensive monitoring with Prometheus + Grafana all running and managed via GitOps.
+This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, and comprehensive monitoring with Prometheus + Grafana.
+
+**Architecture**: Core storage components are managed via Helmfile for high availability, while other services use GitOps (Flux) for automated deployment and management.
 
 ## Prerequisites
 
@@ -82,9 +84,37 @@ resources:
     memory: "2Gi"   # For lower-end hardware
 ```
 
-## Step 2: Deploy the Foundation
+## Step 2: Deploy Foundation Storage
 
-### 2.1 Bootstrap Flux
+**Foundation components are deployed first using Helmfile to ensure storage is available before GitOps takes over.**
+
+### 2.1 Deploy Longhorn Storage
+```bash
+# Deploy Longhorn CSI for persistent volumes
+cd longhorn/
+helmfile apply
+
+# Verify Longhorn is running
+kubectl get pods -n longhorn-system
+kubectl get storageclass
+```
+
+### 2.2 Deploy MinIO Object Storage
+```bash
+# Deploy MinIO for S3-compatible object storage
+cd ../minio/
+helmfile apply
+
+# Verify MinIO is running
+kubectl get pods -n minio-operator
+kubectl get pods -n minio-tenant
+```
+
+## Step 3: Deploy GitOps Infrastructure
+
+**Now that storage foundation is ready, deploy GitOps-managed components.**
+
+### 3.1 Bootstrap Flux
 ```bash
 # Set your GitHub details
 export GITHUB_USER=YOUR_USERNAME
@@ -99,7 +129,7 @@ flux bootstrap github \
   --personal
 ```
 
-### 2.2 Wait for Infrastructure Deployment
+### 3.2 Wait for Infrastructure Deployment
 ```bash
 # Watch Flux deploy the infrastructure
 flux get all
@@ -111,52 +141,41 @@ kubectl get pods -A
 You should see pods running in:
 - `flux-system` (GitOps controller)
 - `metallb-system` (Load balancer)
-- `longhorn-system` (Storage)
 - `cert-manager` (Certificate management)
+- `haproxy-controller` (Ingress controller)
 - `monitoring` (Prometheus + Grafana)
 
-### 2.3 Deploy MinIO
-```bash
-# Deploy MinIO using Helmfile
-cd minio/
-helmfile apply
+## Step 4: Verify Everything Works
 
-# Check MinIO status
-kubectl get tenant -n minio-tenant
-kubectl get pods -n minio-tenant
-```
-
-## Step 3: Verify Everything Works
-
-### 3.1 Check Service IPs
+### 4.1 Check Service IPs
 ```bash
 kubectl get svc -A | grep LoadBalancer
 ```
 
 You should see MinIO services with external IPs from your MetalLB range.
 
-### 3.2 Access MinIO Console
+### 4.2 Access MinIO Console
 1. Find the console IP: `kubectl get svc minio-tenant-console -n minio-tenant`
 2. Open browser to: `https://CONSOLE_IP:9443`
 3. Login with your credentials (default: minio/minio123)
 4. Accept the self-signed certificate warning
 
-### 3.3 Access Grafana Dashboard
+### 4.3 Access Grafana Dashboard
 1. Find the Grafana IP: `kubectl get svc grafana -n monitoring`
 2. Open browser to: `http://GRAFANA_IP:3000`
 3. Login with: admin/grafana123
 4. Explore pre-configured dashboards for Kubernetes, nodes, and storage
 
-### 3.4 Access Longhorn UI
+### 4.4 Access Longhorn UI
 ```bash
 # Port-forward to access Longhorn
 kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
 ```
 Open browser to: `http://localhost:8080`
 
-## Step 4: Test GitOps Workflow
+## Step 5: Test GitOps Workflow
 
-### 4.1 Make a Change
+### 5.1 Make a Change
 Edit any file in the repository (try changing a comment):
 ```bash
 # Edit a file
@@ -168,7 +187,7 @@ git commit -m "Test GitOps workflow"
 git push origin main
 ```
 
-### 4.2 Watch Flux Sync
+### 5.2 Watch Flux Sync
 ```bash
 # Force immediate sync (optional)
 flux reconcile source git flux-system
