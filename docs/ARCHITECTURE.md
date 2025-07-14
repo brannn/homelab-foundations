@@ -55,7 +55,12 @@ MetalLB LoadBalancer Pool
    - Data path: `/var/lib/longhorn/`
    - Replica count: 1 (single node)
 
-4. **MinIO Object Storage** (Helmfile-managed)
+4. **cert-manager**
+   - Automated TLS certificate management
+   - Let's Encrypt integration with ClusterIssuer
+   - Ready for ingress and service TLS termination
+
+5. **MinIO Object Storage** (Helmfile-managed)
    - **Management**: Helmfile (separate from Flux)
    - **Operator**: Manages MinIO deployments (configurable replicas)
    - **Tenant**: Actual MinIO instance (configurable servers and storage)
@@ -63,7 +68,7 @@ MetalLB LoadBalancer Pool
    - **Services**: S3 API and Console via MetalLB LoadBalancer
    - **Credentials**: Configurable (see minio/tenant-values.yaml)
 
-5. **Monitoring Stack** (Flux-managed)
+6. **Monitoring Stack** (Flux-managed)
    - **Prometheus**: Metrics collection and storage (30-day retention)
    - **Grafana**: Dashboards and visualization via LoadBalancer
    - **Alertmanager**: Alert management and routing

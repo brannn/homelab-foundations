@@ -112,6 +112,7 @@ You should see pods running in:
 - `flux-system` (GitOps controller)
 - `metallb-system` (Load balancer)
 - `longhorn-system` (Storage)
+- `cert-manager` (Certificate management)
 - `monitoring` (Prometheus + Grafana)
 
 ### 2.3 Deploy MinIO
@@ -182,6 +183,7 @@ flux get all
 - **Kubernetes cluster** with GitOps management
 - **MetalLB** providing LoadBalancer services
 - **Longhorn** providing persistent storage
+- **cert-manager** providing TLS certificate management
 - **MinIO** providing S3-compatible object storage
 - **Prometheus + Grafana** providing comprehensive monitoring
 

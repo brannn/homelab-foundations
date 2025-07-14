@@ -64,6 +64,10 @@ kubectl get tenant -n minio-tenant
 # Monitoring status
 kubectl get pods -n monitoring
 kubectl get svc -n monitoring
+
+# cert-manager status
+kubectl get pods -n cert-manager
+kubectl get clusterissuers
 ```
 
 ## Common Fixes

@@ -15,6 +15,7 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 - **GitOps**: Flux CD for continuous deployment
 - **Load Balancer**: MetalLB with configurable IP ranges
 - **Storage**: Longhorn CSI for persistent volumes
+- **Certificates**: cert-manager for TLS certificate management
 - **Object Storage**: MinIO managed via Helmfile
 - **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards
 
@@ -28,6 +29,7 @@ homelab-foundations/
 │       ├── namespaces.yaml       # Namespace definitions
 │       ├── metallb/              # MetalLB configuration
 │       ├── longhorn/             # Longhorn Helm release
+│       ├── cert-manager/         # Certificate management
 │       ├── monitoring/           # Prometheus + Grafana stack
 │       └── kustomization.yaml    # Main cluster kustomization
 ├── infrastructure/
@@ -87,6 +89,13 @@ homelab-foundations/
 - **Certificates**: Auto-generated self-signed for HTTPS
 - **Access**: S3 API and Console via MetalLB LoadBalancer
 - **Credentials**: Configurable (see minio/tenant-values.yaml)
+
+### cert-manager (Flux-managed)
+- **Namespace**: cert-manager
+- **Purpose**: Automated TLS certificate management
+- **ClusterIssuer**: Pre-configured for Let's Encrypt (staging and production)
+- **Integration**: Ready for use with ingress controllers and services
+- **Note**: Currently available but not integrated with existing services
 
 ### Monitoring (Flux-managed)
 - **Namespace**: monitoring
@@ -199,6 +208,7 @@ kubectl get tenant -n minio-tenant
 - **GitOps**: Hybrid approach - Flux for infrastructure, Helmfile for complex applications
 - **Storage**: Longhorn CSI with configurable replica count
 - **Networking**: MetalLB LoadBalancer with configurable IP pools
+- **Certificates**: cert-manager for automated TLS certificate management
 - **Object Storage**: MinIO with HTTPS auto-certificates
 - **Monitoring**: Prometheus + Grafana with pre-configured dashboards
 - **Scalability**: Designed for single-node but expandable to multi-node
