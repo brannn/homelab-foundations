@@ -213,6 +213,10 @@ kubectl get tenant -n minio-tenant
 - **[Monitoring Guide](docs/MONITORING.md)** - Prometheus + Grafana stack details
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)** - Problem diagnosis and fixes
 
+### Application Examples
+- **[Application Examples](examples/README.md)** - Boilerplate for common deployment patterns
+- **[Deployment Guide](examples/DEPLOYMENT_GUIDE.md)** - Step-by-step application deployment
+
 ### Setup Guides
 - **[Quick Start Guide](QUICKSTART.md)** - Complete setup walkthrough
 - **[Configuration Guide](CONFIGURATION.md)** - Detailed customization options
