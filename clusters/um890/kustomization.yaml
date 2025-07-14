@@ -6,5 +6,7 @@ resources:
   - ../../infrastructure/helm-repositories
   - metallb
   - longhorn
+  - cert-manager
+  - haproxy-ingress
   - monitoring
   # MinIO managed by Helmfile (see minio/ directory)

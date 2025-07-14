@@ -5,4 +5,5 @@ resources:
   - cert-manager.yaml
   - prometheus-community.yaml
   - grafana.yaml
+  - haproxy-tech.yaml
   # MinIO charts managed by Helmfile

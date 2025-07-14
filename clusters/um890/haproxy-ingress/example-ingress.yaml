@@ -1,0 +1,26 @@
+# Example Ingress demonstrating HAProxy + cert-manager integration
+# This is optional and can be removed if not needed
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+spec:
+  ingressClassName: haproxy
+  tls:
+    - hosts:
+        - grafana.homelab.local  # Update for your domain
+      secretName: grafana-tls
+  rules:
+    - host: grafana.homelab.local  # Update for your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000
