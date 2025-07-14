@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: simple-app-config
+  namespace: simple-app
+  labels:
+    app.kubernetes.io/name: simple-app
+    app.kubernetes.io/component: config
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+        
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+        
+        access_log /var/log/nginx/access.log main;
+        error_log /var/log/nginx/error.log warn;
+        
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        
+        server {
+            listen 8080;
+            server_name localhost;
+            
+            location / {
+                root /usr/share/nginx/html;
+                index index.html index.htm;
+            }
+            
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+            
+            location /metrics {
+                access_log off;
+                return 200 "# Simple app metrics\nsimple_app_requests_total 1\n";
+                add_header Content-Type text/plain;
+            }
+        }
+    }
+  
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Simple App - Homelab Foundations</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+            .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            h1 { color: #333; }
+            .info { background: #e7f3ff; padding: 15px; border-radius: 4px; margin: 20px 0; }
+            .status { color: #28a745; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🚀 Simple App Example</h1>
+            <p>This is a simple application deployed using <strong>Homelab Foundations</strong> and <strong>Flux GitOps</strong>.</p>
+            
+            <div class="info">
+                <h3>Application Info</h3>
+                <ul>
+                    <li><strong>Status:</strong> <span class="status">Running</span></li>
+                    <li><strong>Deployment:</strong> Flux GitOps</li>
+                    <li><strong>Storage:</strong> None (stateless)</li>
+                    <li><strong>Networking:</strong> ClusterIP service</li>
+                </ul>
+            </div>
+            
+            <h3>Available Endpoints</h3>
+            <ul>
+                <li><code>/</code> - This page</li>
+                <li><code>/health</code> - Health check endpoint</li>
+                <li><code>/metrics</code> - Basic metrics endpoint</li>
+            </ul>
+            
+            <h3>Next Steps</h3>
+            <p>Try the other examples:</p>
+            <ul>
+                <li><strong>web-app-with-ingress</strong> - External access with HTTPS</li>
+                <li><strong>database-app</strong> - Stateful application with persistent storage</li>
+                <li><strong>monitoring-app</strong> - Application with Prometheus integration</li>
+            </ul>
+        </div>
+    </body>
+    </html>

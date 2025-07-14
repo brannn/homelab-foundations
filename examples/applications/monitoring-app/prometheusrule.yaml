@@ -1,0 +1,94 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: monitored-app
+  namespace: monitored-app
+  labels:
+    app.kubernetes.io/name: monitored-app
+    app.kubernetes.io/component: monitoring
+spec:
+  groups:
+  - name: monitored-app.rules
+    rules:
+    - alert: MonitoredAppHighErrorRate
+      expr: |
+        (
+          rate(nginx_http_requests_total{status=~"5.."}[5m]) /
+          rate(nginx_http_requests_total[5m])
+        ) * 100 > 5
+      for: 5m
+      labels:
+        severity: warning
+        service: monitored-app
+      annotations:
+        summary: "High error rate detected for Monitored App"
+        description: "Error rate is {{ $value }}% for the last 5 minutes"
+        runbook_url: "https://github.com/your-org/runbooks/monitored-app-errors"
+    
+    - alert: MonitoredAppHighResponseTime
+      expr: |
+        histogram_quantile(0.95,
+          rate(nginx_http_request_duration_seconds_bucket[5m])
+        ) > 1
+      for: 5m
+      labels:
+        severity: warning
+        service: monitored-app
+      annotations:
+        summary: "High response time detected for Monitored App"
+        description: "95th percentile response time is {{ $value }}s"
+        runbook_url: "https://github.com/your-org/runbooks/monitored-app-performance"
+    
+    - alert: MonitoredAppDown
+      expr: up{job="monitored-app"} == 0
+      for: 1m
+      labels:
+        severity: critical
+        service: monitored-app
+      annotations:
+        summary: "Monitored App is down"
+        description: "Monitored App has been down for more than 1 minute"
+        runbook_url: "https://github.com/your-org/runbooks/monitored-app-down"
+    
+    - alert: MonitoredAppHighMemoryUsage
+      expr: |
+        (
+          container_memory_working_set_bytes{container="app", pod=~"monitored-app-.*"} /
+          container_spec_memory_limit_bytes{container="app", pod=~"monitored-app-.*"}
+        ) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        service: monitored-app
+      annotations:
+        summary: "High memory usage detected for Monitored App"
+        description: "Memory usage is {{ $value }}% of the limit"
+        runbook_url: "https://github.com/your-org/runbooks/monitored-app-memory"
+    
+    - alert: MonitoredAppHighCPUUsage
+      expr: |
+        (
+          rate(container_cpu_usage_seconds_total{container="app", pod=~"monitored-app-.*"}[5m]) /
+          container_spec_cpu_quota{container="app", pod=~"monitored-app-.*"} * 
+          container_spec_cpu_period{container="app", pod=~"monitored-app-.*"}
+        ) * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        service: monitored-app
+      annotations:
+        summary: "High CPU usage detected for Monitored App"
+        description: "CPU usage is {{ $value }}% of the limit"
+        runbook_url: "https://github.com/your-org/runbooks/monitored-app-cpu"
+    
+    - alert: MonitoredAppPodCrashLooping
+      expr: |
+        rate(kube_pod_container_status_restarts_total{container="app", pod=~"monitored-app-.*"}[5m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+        service: monitored-app
+      annotations:
+        summary: "Monitored App pod is crash looping"
+        description: "Pod {{ $labels.pod }} is restarting frequently"
+        runbook_url: "https://github.com/your-org/runbooks/monitored-app-crashes"

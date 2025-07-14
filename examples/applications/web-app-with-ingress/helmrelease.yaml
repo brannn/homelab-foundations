@@ -1,0 +1,178 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: myapp
+  namespace: myapp
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: nginx
+      version: '>=15.0.0'
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami
+        namespace: flux-system
+  values:
+    # Custom nginx configuration
+    serverBlock: |
+      server {
+          listen 8080;
+          server_name _;
+          
+          # Security headers
+          add_header X-Frame-Options "SAMEORIGIN" always;
+          add_header X-Content-Type-Options "nosniff" always;
+          add_header X-XSS-Protection "1; mode=block" always;
+          add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+          
+          location / {
+              root /app;
+              index index.html;
+              try_files $uri $uri/ =404;
+          }
+          
+          location /health {
+              access_log off;
+              return 200 "healthy\n";
+              add_header Content-Type text/plain;
+          }
+          
+          location /ready {
+              access_log off;
+              return 200 "ready\n";
+              add_header Content-Type text/plain;
+          }
+          
+          location /metrics {
+              access_log off;
+              return 200 "# MyApp metrics\nmyapp_requests_total 1\n";
+              add_header Content-Type text/plain;
+          }
+      }
+    
+    # Resource configuration
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+    
+    # Replica configuration
+    replicaCount: 2
+    
+    # Service configuration
+    service:
+      type: LoadBalancer
+      ports:
+        http: 80
+    
+    # Health checks
+    livenessProbe:
+      enabled: true
+      httpGet:
+        path: /health
+        port: http
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    
+    readinessProbe:
+      enabled: true
+      httpGet:
+        path: /ready
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    
+    # Security context
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+      runAsGroup: 1001
+      fsGroup: 1001
+    
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+    
+    # Custom content via init container
+    initContainers:
+    - name: setup-content
+      image: busybox:1.35
+      command:
+      - sh
+      - -c
+      - |
+        cat > /app/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>MyApp - Homelab Foundations</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+                .container { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+                h1 { color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+                .info { background: rgba(255,255,255,0.2); padding: 20px; border-radius: 8px; margin: 20px 0; }
+                .status { color: #4ade80; font-weight: bold; }
+                a { color: #60a5fa; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🌐 MyApp - Web Application with Ingress</h1>
+                <p>This web application demonstrates external access via HAProxy ingress with HTTPS termination.</p>
+                
+                <div class="info">
+                    <h3>Application Features</h3>
+                    <ul>
+                        <li><strong>Status:</strong> <span class="status">Running with HTTPS</span></li>
+                        <li><strong>Deployment:</strong> Helm via Flux GitOps</li>
+                        <li><strong>Ingress:</strong> HAProxy with TLS termination</li>
+                        <li><strong>Load Balancer:</strong> MetalLB external IP</li>
+                        <li><strong>Certificates:</strong> Automatic via cert-manager</li>
+                        <li><strong>Replicas:</strong> 2 for high availability</li>
+                    </ul>
+                </div>
+                
+                <h3>Available Endpoints</h3>
+                <ul>
+                    <li><code>/</code> - This page</li>
+                    <li><code>/health</code> - Health check endpoint</li>
+                    <li><code>/ready</code> - Readiness check endpoint</li>
+                    <li><code>/metrics</code> - Metrics endpoint</li>
+                </ul>
+                
+                <h3>Access Methods</h3>
+                <ul>
+                    <li><strong>HTTPS Ingress:</strong> https://myapp.homelab.local (recommended)</li>
+                    <li><strong>LoadBalancer:</strong> Direct IP access via MetalLB</li>
+                </ul>
+                
+                <h3>Security Features</h3>
+                <ul>
+                    <li>TLS encryption with automatic certificates</li>
+                    <li>Security headers (XSS, CSRF protection)</li>
+                    <li>Non-root container execution</li>
+                    <li>Read-only root filesystem</li>
+                </ul>
+            </div>
+        </body>
+        </html>
+        EOF
+      volumeMounts:
+      - name: app-content
+        mountPath: /app
+    
+    # Additional volumes
+    extraVolumes:
+    - name: app-content
+      emptyDir: {}
+    
+    extraVolumeMounts:
+    - name: app-content
+      mountPath: /app

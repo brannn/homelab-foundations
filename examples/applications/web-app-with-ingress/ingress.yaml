@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myapp
+  namespace: myapp
+  annotations:
+    kubernetes.io/ingress.class: haproxy
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    haproxy.org/ssl-redirect: "true"
+    haproxy.org/timeout-http-request: "30s"
+    haproxy.org/timeout-connect: "10s"
+    haproxy.org/timeout-client: "60s"
+    haproxy.org/timeout-server: "60s"
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/component: ingress
+spec:
+  tls:
+  - hosts:
+    - myapp.homelab.local
+    secretName: myapp-tls
+  rules:
+  - host: myapp.homelab.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: myapp
+            port:
+              number: 80

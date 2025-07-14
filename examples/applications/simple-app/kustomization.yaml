@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: simple-app
+  namespace: simple-app
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+
+commonLabels:
+  app.kubernetes.io/managed-by: flux
+  app.kubernetes.io/part-of: homelab-foundations
+
+images:
+  - name: nginx
+    newTag: "1.25-alpine"
+
+replicas:
+  - name: simple-app
+    count: 1

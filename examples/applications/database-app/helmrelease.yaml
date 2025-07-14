@@ -1,0 +1,157 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: postgres
+  namespace: postgres
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: postgresql
+      version: '>=12.0.0'
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami
+        namespace: flux-system
+  values:
+    # Authentication
+    auth:
+      postgresPassword: "your-secure-password-here"  # Change this!
+      username: "appuser"
+      password: "your-app-password-here"  # Change this!
+      database: "myapp"
+    
+    # Architecture
+    architecture: standalone
+    
+    # Primary configuration
+    primary:
+      # Resource configuration
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+      
+      # Persistence
+      persistence:
+        enabled: true
+        storageClass: "longhorn"
+        size: 20Gi
+        accessModes:
+          - ReadWriteOnce
+      
+      # Security context
+      podSecurityContext:
+        enabled: true
+        fsGroup: 1001
+        runAsUser: 1001
+        runAsGroup: 1001
+        runAsNonRoot: true
+      
+      containerSecurityContext:
+        enabled: true
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: false
+        capabilities:
+          drop:
+          - ALL
+      
+      # PostgreSQL configuration
+      configuration: |
+        # Connection settings
+        max_connections = 100
+        shared_buffers = 256MB
+        effective_cache_size = 1GB
+        
+        # Write-ahead logging
+        wal_level = replica
+        max_wal_size = 1GB
+        min_wal_size = 80MB
+        
+        # Query tuning
+        random_page_cost = 1.1
+        effective_io_concurrency = 200
+        
+        # Logging
+        log_destination = 'stderr'
+        logging_collector = on
+        log_directory = 'log'
+        log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+        log_statement = 'error'
+        log_min_duration_statement = 1000
+        
+        # Monitoring
+        shared_preload_libraries = 'pg_stat_statements'
+        pg_stat_statements.track = all
+        pg_stat_statements.max = 10000
+      
+      # Initialization scripts
+      initdb:
+        scripts:
+          01-init.sql: |
+            -- Create application schema
+            CREATE SCHEMA IF NOT EXISTS app;
+            
+            -- Grant permissions
+            GRANT USAGE ON SCHEMA app TO appuser;
+            GRANT CREATE ON SCHEMA app TO appuser;
+            
+            -- Create example table
+            CREATE TABLE IF NOT EXISTS app.users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            -- Grant table permissions
+            GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA app TO appuser;
+            GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA app TO appuser;
+            
+            -- Insert sample data
+            INSERT INTO app.users (username, email) VALUES 
+                ('admin', 'admin@homelab.local'),
+                ('user1', 'user1@homelab.local')
+            ON CONFLICT (username) DO NOTHING;
+      
+      # Service configuration
+      service:
+        type: ClusterIP
+        ports:
+          postgresql: 5432
+    
+    # Metrics configuration
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        namespace: postgres
+        labels:
+          app.kubernetes.io/name: postgres
+          app.kubernetes.io/component: metrics
+      
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 50m
+          memory: 64Mi
+    
+    # Volume permissions (for Longhorn)
+    volumePermissions:
+      enabled: true
+      securityContext:
+        runAsUser: 0
+    
+    # Backup configuration
+    backup:
+      enabled: false  # Enable if you want automated backups
+      cronjob:
+        schedule: "0 2 * * *"  # Daily at 2 AM
+        storage:
+          size: 10Gi
+          storageClass: "longhorn"
