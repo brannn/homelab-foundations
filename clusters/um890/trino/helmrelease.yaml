@@ -139,9 +139,9 @@ spec:
       # Iceberg catalog with REST catalog integration
       iceberg: |
         connector.name=iceberg
-        catalog.type=rest
-        uri=http://iceberg-rest-catalog:8181
-        warehouse=s3a://iceberg/
+        iceberg.catalog.type=rest
+        iceberg.rest.uri=http://iceberg-rest-catalog:8181
+        iceberg.rest.warehouse=s3a://iceberg/
         fs.s3a.endpoint=https://10.0.0.241:443
         fs.s3a.access.key=${ENV:MINIO_ACCESS_KEY}
         fs.s3a.secret.key=${ENV:MINIO_SECRET_KEY}
