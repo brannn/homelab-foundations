@@ -11,13 +11,13 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 
 ## Infrastructure Components
 
-- **Kubernetes**: Single-node cluster (assumes K3s)
+- **Kubernetes**: Single-node cluster (assumes K3s) - *Tested on v1.32.6+k3s1*
 - **GitOps**: Flux CD for continuous deployment
-- **Load Balancer**: MetalLB with configurable IP ranges
-- **Storage**: Longhorn CSI for persistent volumes
-- **Certificates**: cert-manager for TLS certificate management
-- **Object Storage**: MinIO managed via Helmfile
-- **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards
+- **Load Balancer**: MetalLB with configurable IP ranges - *Uses v1beta1 API*
+- **Storage**: Longhorn CSI for persistent volumes - *Chart version >=1.5.0*
+- **Certificates**: cert-manager for TLS certificate management - *Chart version >=1.13.0*
+- **Object Storage**: MinIO managed via Helmfile - *Operator/Tenant v7.1.1*
+- **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards - *kube-prometheus-stack v61.3.2, Grafana v8.4.2*
 
 ## Repository Structure
 
