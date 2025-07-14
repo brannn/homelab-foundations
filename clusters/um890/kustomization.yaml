@@ -5,8 +5,8 @@ resources:
   - flux-system
   - ../../infrastructure/helm-repositories
   - metallb
-  - longhorn
   - cert-manager
   - haproxy-ingress
   - monitoring
+  # Longhorn managed by Helmfile (see longhorn/ directory)
   # MinIO managed by Helmfile (see minio/ directory)

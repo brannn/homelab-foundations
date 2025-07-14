@@ -1,0 +1,72 @@
+# Longhorn configuration for homelab foundations
+# Storage foundation component - managed outside of Flux
+
+defaultSettings:
+  # Storage path - ensure this points to your dedicated storage
+  defaultDataPath: /mnt/data/longhorn/  # Updated to use dedicated storage mount
+  defaultDataLocality: best-effort
+  replicaSoftAntiAffinity: false
+  storageOverProvisioningPercentage: 100
+  storageMinimalAvailablePercentage: 25
+  upgradeChecker: false
+  defaultReplicaCount: 1  # Single node setup
+  defaultLonghornStaticStorageClass: longhorn
+  backupstorePollInterval: 300
+  taintToleration: ""
+  systemManagedComponentsNodeSelector: ""
+  priorityClass: ""
+  autoSalvage: true
+  autoDeletePodWhenVolumeDetachedUnexpectedly: true
+  disableSchedulingOnCordonedNode: true
+  replicaZoneSoftAntiAffinity: true
+  nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+  allowNodeDrainWithLastHealthyReplica: false
+  mkfsExt4Parameters: ""
+  disableReplicaRebuild: false
+  replicaReplenishmentWaitInterval: 600
+  concurrentReplicaRebuildPerNodeLimit: 5
+  disableRevisionCounter: true
+  systemManagedPodsImagePullPolicy: if-not-present
+  allowVolumeCreationWithDegradedAvailability: true
+  autoCleanupSystemGeneratedSnapshot: true
+  concurrentAutomaticEngineUpgradePerNodeLimit: 0
+  backingImageCleanupWaitInterval: 60
+  backingImageRecoveryWaitInterval: 300
+  guaranteedEngineManagerCPU: 12
+  guaranteedReplicaManagerCPU: 12
+
+persistence:
+  defaultClass: true
+  defaultClassReplicaCount: 1
+
+service:
+  ui:
+    type: LoadBalancer  # Expose UI via MetalLB
+
+# Resource limits for homelab
+longhornManager:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+longhornDriver:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+longhornUI:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
