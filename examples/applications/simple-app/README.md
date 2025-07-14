@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates deploying a basic stateless application using Flux GitOps. It includes a simple web server with configuration management and basic monitoring.
+This example shows deployment of a basic stateless application using Flux GitOps. It includes a web server with configuration management and monitoring.
 
 ## Components
 

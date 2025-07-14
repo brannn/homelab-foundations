@@ -11,20 +11,20 @@ This guide provides step-by-step instructions for deploying applications to your
 
 ## Prerequisites
 
-Before deploying applications, ensure your homelab-foundations cluster has:
+Before deploying applications, verify your homelab-foundations cluster has:
 
 ### Required Components
-- ✅ **Kubernetes cluster** (K3s recommended)
-- ✅ **Flux GitOps** deployed and operational
-- ✅ **Longhorn CSI** for persistent storage
-- ✅ **MetalLB** for LoadBalancer services
-- ✅ **HAProxy Ingress Controller** for HTTP/HTTPS routing
-- ✅ **cert-manager** for TLS certificate automation
+- **Kubernetes cluster** (K3s recommended)
+- **Flux GitOps** deployed and operational
+- **Longhorn CSI** for persistent storage
+- **MetalLB** for LoadBalancer services
+- **HAProxy Ingress Controller** for HTTP/HTTPS routing
+- **cert-manager** for TLS certificate automation
 
 ### Optional Components (for full functionality)
-- ✅ **Prometheus + Grafana** for monitoring
-- ✅ **MinIO** for object storage
-- ✅ **DNS resolution** for custom domains
+- **Prometheus + Grafana** for monitoring
+- **MinIO** for object storage
+- **DNS resolution** for custom domains
 
 ### Verification Commands
 ```bash
@@ -54,10 +54,10 @@ Select the example that best matches your needs:
 
 | Pattern | Use Case | Components | Complexity |
 |---------|----------|------------|------------|
-| **simple-app** | Basic web service | Deployment, Service, ConfigMap | ⭐ |
-| **web-app-with-ingress** | External web app | + Ingress, TLS certificates | ⭐⭐ |
-| **database-app** | Stateful service | + StatefulSet, PVC, Secrets | ⭐⭐⭐ |
-| **monitoring-app** | Full observability | + ServiceMonitor, Alerts, HPA | ⭐⭐⭐⭐ |
+| **simple-app** | Basic web service | Deployment, Service, ConfigMap | Basic |
+| **web-app-with-ingress** | External web app | + Ingress, TLS certificates | Intermediate |
+| **database-app** | Stateful service | + StatefulSet, PVC, Secrets | Advanced |
+| **monitoring-app** | Full observability | + ServiceMonitor, Alerts, HPA | Expert |
 
 ### 2. Copy and Customize
 
@@ -217,7 +217,7 @@ For applications with ingress, configure DNS resolution:
 echo "10.0.0.244 your-app.homelab.local" >> /etc/hosts
 ```
 
-### Option 2: Router DNS (Recommended)
+### Option 2: Router DNS
 Configure your router to resolve `*.homelab.local` to your HAProxy LoadBalancer IP (`10.0.0.244`).
 
 ### Option 3: External DNS

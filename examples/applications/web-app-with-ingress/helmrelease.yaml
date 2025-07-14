@@ -124,7 +124,7 @@ spec:
         </head>
         <body>
             <div class="container">
-                <h1>🌐 MyApp - Web Application with Ingress</h1>
+                <h1>MyApp - Web Application with Ingress</h1>
                 <p>This web application demonstrates external access via HAProxy ingress with HTTPS termination.</p>
                 
                 <div class="info">

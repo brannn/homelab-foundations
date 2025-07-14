@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates deploying a web application with external access via HAProxy ingress controller, including HTTPS with automatic TLS certificate provisioning via cert-manager.
+This example shows deployment of a web application with external access via HAProxy ingress controller, including HTTPS with automatic TLS certificate provisioning via cert-manager.
 
 ## Components
 
@@ -85,7 +85,7 @@ Or add to your `/etc/hosts` file:
 
 ## Accessing the Application
 
-### Via Ingress (Recommended)
+### Via Ingress
 Visit: https://myapp.homelab.local
 
 ### Via LoadBalancer IP

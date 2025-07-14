@@ -67,7 +67,7 @@ data:
     </head>
     <body>
         <div class="container">
-            <h1>🚀 Simple App Example</h1>
+            <h1>Simple App Example</h1>
             <p>This is a simple application deployed using <strong>Homelab Foundations</strong> and <strong>Flux GitOps</strong>.</p>
             
             <div class="info">

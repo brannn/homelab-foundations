@@ -41,7 +41,7 @@ This directory contains boilerplate examples demonstrating how to add applicatio
 
 ## Integration with Homelab Infrastructure
 
-All examples are designed to work with the existing homelab-foundations components:
+All examples integrate with the existing homelab-foundations components:
 
 ### Storage Integration
 - **Longhorn CSI**: Persistent volumes for stateful applications

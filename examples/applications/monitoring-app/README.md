@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates deploying an application with comprehensive monitoring integration, including Prometheus metrics, custom dashboards, alerting rules, and horizontal pod autoscaling.
+This example shows deployment of an application with monitoring integration, including Prometheus metrics, custom dashboards, alerting rules, and horizontal pod autoscaling.
 
 ## Components
 

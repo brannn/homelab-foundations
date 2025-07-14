@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates deploying a stateful database application (PostgreSQL) with persistent storage using Longhorn CSI, proper secret management, and backup considerations.
+This example shows deployment of a stateful database application (PostgreSQL) with persistent storage using Longhorn CSI, secret management, and backup considerations.
 
 ## Components
 

@@ -103,8 +103,8 @@ data:
     </head>
     <body>
         <div class="container">
-            <h1>📊 Monitored App - Comprehensive Monitoring Example</h1>
-            <p>This application demonstrates comprehensive monitoring integration with Prometheus, Grafana, and alerting.</p>
+            <h1>Monitored App - Comprehensive Monitoring Example</h1>
+            <p>This application shows monitoring integration with Prometheus, Grafana, and alerting.</p>
             
             <div class="info">
                 <h3>Monitoring Features</h3>
