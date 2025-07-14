@@ -1,7 +1,7 @@
 # Homelab Foundations
 
-**Version**: 1.0
-**Date**: 2025-07-13
+**Version**: 1.1
+**Date**: 2025-07-14
 **Author**: Community Contributors
 **Status**: Active
 
@@ -20,7 +20,7 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 - **GitOps**: Flux CD for continuous deployment
 - **Load Balancer**: MetalLB with configurable IP ranges - *Uses v1beta1 API*
 - **Certificates**: cert-manager for TLS certificate management - *Chart version >=1.13.0*
-- **Ingress**: HAProxy Ingress Controller for HTTP/HTTPS routing - *Chart version >=1.33.5*
+- **Ingress**: HAProxy Ingress Controller for HTTP/HTTPS routing - *Chart version >=1.44.0*
 - **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards - *kube-prometheus-stack v61.3.2, Grafana v8.4.2*
 
 ## Architecture Decisions
@@ -142,7 +142,7 @@ homelab-foundations/
 
 ### Updating Configurations
 
-**Flux-managed components** (MetalLB, Longhorn):
+**Flux-managed components** (MetalLB, HAProxy, cert-manager, Monitoring):
 1. Edit manifests in this repository
 2. Commit and push changes to main branch
 3. Flux automatically syncs changes to the cluster (default: 1 minute interval)
@@ -209,6 +209,7 @@ kubectl get tenant -n minio-tenant
 ### Operational Guides
 - **[Operational Runbook](docs/OPERATIONAL_RUNBOOK.md)** - Complete operations manual
 - **[Quick Reference](docs/QUICK_REFERENCE.md)** - Essential commands and URLs
+- **[HAProxy Ingress Guide](docs/HAPROXY_INGRESS.md)** - HAProxy ingress controller usage
 - **[Monitoring Guide](docs/MONITORING.md)** - Prometheus + Grafana stack details
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)** - Problem diagnosis and fixes
 
@@ -239,6 +240,7 @@ kubectl get tenant -n minio-tenant
 - **GitOps**: Hybrid approach - Flux for infrastructure, Helmfile for complex applications
 - **Storage**: Longhorn CSI with configurable replica count
 - **Networking**: MetalLB LoadBalancer with configurable IP pools
+- **Ingress**: HAProxy Ingress Controller for HTTP/HTTPS routing
 - **Certificates**: cert-manager for automated TLS certificate management
 - **Object Storage**: MinIO with HTTPS auto-certificates
 - **Monitoring**: Prometheus + Grafana with pre-configured dashboards
