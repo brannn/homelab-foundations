@@ -1,0 +1,48 @@
+tenant:
+  name: minio-tenant
+  image:
+    repository: quay.io/minio/minio
+    tag: RELEASE.2025-04-08T15-41-24Z
+    pullPolicy: IfNotPresent
+  
+  configSecret:
+    name: minio-tenant-env-configuration
+    accessKey: minio  # Change this for your deployment
+    secretKey: minio123  # Change this for your deployment
+  
+  pools:
+    - servers: 1
+      name: pool-0
+      volumesPerServer: 1
+      size: 300Gi  # Adjust for your storage requirements
+      storageClassName: longhorn
+      resources:
+        requests:
+          cpu: "1000m"  # Adjust for your hardware
+          memory: "2Gi"  # Adjust for your hardware
+        limits:
+          cpu: "2000m"  # Adjust for your hardware
+          memory: "4Gi"  # Adjust for your hardware
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: "OnRootMismatch"
+        runAsNonRoot: true
+      containerSecurityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+  
+  certificate:
+    requestAutoCert: true  # Enable self-signed certificates for HTTPS console
+  
+  exposeServices:
+    minio: true
+    console: true

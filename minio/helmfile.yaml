@@ -1,0 +1,22 @@
+repositories:
+  - name: minio-operator
+    url: https://operator.min.io
+
+releases:
+  - name: minio-operator
+    chart: minio-operator/operator
+    namespace: minio-operator
+    createNamespace: true
+    version: "7.1.1"
+    values:
+      - operator:
+          replicaCount: 1  # Single replica for homelab
+
+  - name: minio-tenant
+    chart: minio-operator/tenant
+    namespace: minio-tenant
+    createNamespace: true
+    version: "7.1.1"
+    needs: [minio-operator/minio-operator]  # Wait for operator to be ready
+    values:
+      - tenant-values.yaml

@@ -1,0 +1,51 @@
+# Kubernetes secrets and sensitive files
+*.key
+*.crt
+*.pem
+*secret*.yaml
+*password*.yaml
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+
+# Local development
+.env
+.env.local
+
+# Helm charts (we use HelmRelease instead)
+charts/
+
+# Flux generated files (these will be managed by Flux bootstrap)
+clusters/*/flux-system/gotk-components.yaml
+clusters/*/flux-system/gotk-sync.yaml
+
+# Local kubeconfig files
+kubeconfig*
+*.kubeconfig
+
+# Terraform state (if used in future)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Logs
+*.log
+
+# Documentation standards (internal reference)
+DOCUMENTATION.md
