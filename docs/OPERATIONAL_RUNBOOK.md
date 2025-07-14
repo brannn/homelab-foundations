@@ -1,7 +1,7 @@
 # Homelab Foundations - Operational Runbook
 
-**Version**: 1.0
-**Date**: 2025-07-13
+**Version**: 1.1
+**Date**: 2025-07-14
 **Author**: Community Contributors
 **Status**: Active
 
@@ -52,16 +52,18 @@ kubectl get helmreleases -n monitoring
 
 ### Service Access
 
-**Grafana**: http://10.0.0.244:3000
+**HAProxy Ingress**: http://10.0.0.244 (HTTP/HTTPS ingress controller)
+
+**Grafana**: http://10.0.0.245:3000
 **Credentials**: admin / grafana123
 
-**MinIO Console**: https://10.0.0.243:9443
-**MinIO S3 API**: https://10.0.0.242:443
+**MinIO Console**: https://10.0.0.242:9443
+**MinIO S3 API**: https://10.0.0.241:443
 **Credentials**: minio / minio123
 
-**Longhorn UI**: Access via port-forward:
-```bash
-kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
+**Longhorn UI**: http://10.0.0.243 (via LoadBalancer)
+
+**Traefik (K3s)**: http://10.0.0.240 (default K3s ingress)
 # Access at http://localhost:8080
 ```
 
