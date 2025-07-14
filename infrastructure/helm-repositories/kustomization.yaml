@@ -7,4 +7,5 @@ resources:
   - grafana.yaml
   - haproxy-tech.yaml
   - metallb.yaml
+  - trino.yaml
   # MinIO charts managed by Helmfile

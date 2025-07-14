@@ -7,5 +7,6 @@ resources:
   - cert-manager
   - haproxy-ingress
   - monitoring
+  - trino
   # Longhorn managed by Helmfile (see longhorn/ directory)
   # MinIO managed by Helmfile (see minio/ directory)

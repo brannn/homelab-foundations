@@ -1,0 +1,191 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: trino
+  namespace: iceberg-system
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: trino
+      version: '>=1.39.0'
+      sourceRef:
+        kind: HelmRepository
+        name: trino
+        namespace: flux-system
+  values:
+    # Trino configuration for homelab with Iceberg integration
+    image:
+      tag: "476"  # Use specific version for stability
+    
+    # Server configuration
+    server:
+      workers: 1  # Single worker for homelab
+      node:
+        environment: "production"
+        dataDir: "/data/trino"
+      config:
+        query:
+          maxMemory: "4GB"  # Total cluster memory for queries
+        https:
+          enabled: false  # Use HTTP for simplicity in homelab
+    
+    # Coordinator configuration
+    coordinator:
+      jvm:
+        maxHeapSize: "1500m"  # 1.5GB heap as per plan
+      config:
+        query:
+          maxMemoryPerNode: "1GB"
+        nodeScheduler:
+          includeCoordinator: false  # Don't schedule work on coordinator
+      resources:
+        requests:
+          cpu: 500m
+          memory: 2Gi
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+      # Health checks
+      livenessProbe:
+        initialDelaySeconds: 60
+        periodSeconds: 30
+        timeoutSeconds: 10
+        failureThreshold: 3
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 3
+    
+    # Worker configuration
+    worker:
+      jvm:
+        maxHeapSize: "3500m"  # 3.5GB heap as per plan
+      config:
+        query:
+          maxMemoryPerNode: "3GB"
+      resources:
+        requests:
+          cpu: 1000m
+          memory: 4Gi
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+      # Health checks
+      livenessProbe:
+        initialDelaySeconds: 60
+        periodSeconds: 30
+        timeoutSeconds: 10
+        failureThreshold: 3
+      readinessProbe:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        timeoutSeconds: 5
+        failureThreshold: 3
+    
+    # Service configuration
+    service:
+      type: ClusterIP  # We'll create separate LoadBalancer services
+      port: 8080
+    
+    # Security context
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    
+    # JMX monitoring for Prometheus integration
+    jmx:
+      enabled: true
+      registryPort: 9080
+      serverPort: 9081
+      exporter:
+        enabled: true
+        port: 5556
+        configProperties: |
+          hostPort: localhost:9081
+          startDelaySeconds: 30
+          ssl: false
+          lowercaseOutputName: false
+          lowercaseOutputLabelNames: false
+          rules:
+            - pattern: 'trino.execution<name=QueryManager><>RunningQueries'
+              name: trino_running_queries
+              help: 'Number of running queries'
+              type: GAUGE
+            - pattern: 'trino.execution<name=QueryManager><>QueuedQueries'
+              name: trino_queued_queries
+              help: 'Number of queued queries'
+              type: GAUGE
+            - pattern: 'trino.memory<name=ClusterMemoryManager><>ClusterMemoryBytes'
+              name: trino_cluster_memory_bytes
+              help: 'Total cluster memory in bytes'
+              type: GAUGE
+    
+    # ServiceMonitor for Prometheus
+    serviceMonitor:
+      enabled: true
+      labels:
+        prometheus: kube-prometheus
+      interval: 30s
+    
+    # Catalogs configuration
+    catalogs:
+      # Iceberg catalog with REST catalog integration
+      iceberg: |
+        connector.name=iceberg
+        catalog.type=rest
+        uri=http://iceberg-rest-catalog:8181
+        warehouse=s3a://iceberg/
+        fs.s3a.endpoint=https://10.0.0.241:443
+        fs.s3a.access.key=${ENV:MINIO_ACCESS_KEY}
+        fs.s3a.secret.key=${ENV:MINIO_SECRET_KEY}
+        fs.s3a.path.style.access=true
+        fs.s3a.connection.ssl.enabled=true
+      
+      # TPC-H for testing (default)
+      tpch: |
+        connector.name=tpch
+        tpch.splits-per-node=4
+      
+      # TPC-DS for testing (default)
+      tpcds: |
+        connector.name=tpcds
+        tpcds.splits-per-node=4
+      
+      # Memory connector for temporary tables
+      memory: |
+        connector.name=memory
+        memory.max-data-per-node=128MB
+    
+    # Additional configuration properties
+    additionalConfigProperties:
+      - internal-communication.shared-secret=trino-homelab-secret
+      - http-server.process-forwarded=true
+    
+    # Node properties
+    additionalNodeProperties:
+      - node.environment=homelab
+
+    # Log configuration
+    additionalLogProperties:
+      - io.trino=INFO
+      - io.airlift=INFO
+
+    # Environment variables for MinIO credentials
+    env:
+      - name: MINIO_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: minio-credentials
+            key: access-key
+      - name: MINIO_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: minio-credentials
+            key: secret-key

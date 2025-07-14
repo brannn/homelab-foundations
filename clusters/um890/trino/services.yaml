@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trino-coordinator-lb
+  namespace: iceberg-system
+  labels:
+    app.kubernetes.io/name: trino
+    app.kubernetes.io/component: coordinator
+    app.kubernetes.io/service: loadbalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "10.0.0.241"  # Reserve specific IP for Trino
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+    - port: 5556
+      targetPort: 5556
+      protocol: TCP
+      name: metrics
+  selector:
+    app.kubernetes.io/name: trino
+    app.kubernetes.io/component: coordinator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iceberg-rest-catalog-lb
+  namespace: iceberg-system
+  labels:
+    app.kubernetes.io/name: iceberg-rest-catalog
+    app.kubernetes.io/component: catalog
+    app.kubernetes.io/service: loadbalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "10.0.0.242"  # Reserve specific IP for Iceberg REST
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8181
+      targetPort: 8181
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: iceberg-rest-catalog
+    app.kubernetes.io/component: catalog
