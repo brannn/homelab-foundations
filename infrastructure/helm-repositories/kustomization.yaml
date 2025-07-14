@@ -6,4 +6,5 @@ resources:
   - prometheus-community.yaml
   - grafana.yaml
   - haproxy-tech.yaml
+  - metallb.yaml
   # MinIO charts managed by Helmfile
