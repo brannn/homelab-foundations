@@ -1,7 +1,7 @@
 # Homelab Architecture Overview
 
-**Version**: 1.0
-**Date**: 2025-07-13
+**Version**: 1.1
+**Date**: 2025-07-14
 **Author**: Community Contributors
 **Status**: Active
 
@@ -60,7 +60,13 @@ MetalLB LoadBalancer Pool
    - Let's Encrypt integration with ClusterIssuer
    - Ready for ingress and service TLS termination
 
-5. **MinIO Object Storage** (Helmfile-managed)
+5. **HAProxy Ingress Controller**
+   - High-performance ingress controller for HTTP/HTTPS traffic
+   - LoadBalancer service via MetalLB for external access
+   - Alternative to default Traefik for production workloads
+   - Supports advanced routing, SSL termination, and load balancing
+
+6. **MinIO Object Storage** (Helmfile-managed)
    - **Management**: Helmfile (separate from Flux)
    - **Operator**: Manages MinIO deployments (configurable replicas)
    - **Tenant**: Actual MinIO instance (configurable servers and storage)
@@ -68,7 +74,7 @@ MetalLB LoadBalancer Pool
    - **Services**: S3 API and Console via MetalLB LoadBalancer
    - **Credentials**: Configurable (see minio/tenant-values.yaml)
 
-6. **Monitoring Stack** (Flux-managed)
+7. **Monitoring Stack** (Flux-managed)
    - **Prometheus**: Metrics collection and storage (30-day retention)
    - **Grafana**: Dashboards and visualization via LoadBalancer
    - **Alertmanager**: Alert management and routing
@@ -79,7 +85,7 @@ MetalLB LoadBalancer Pool
 
 ### Hybrid GitOps Workflow
 
-**Flux-managed components** (MetalLB, Longhorn):
+**Flux-managed components** (MetalLB, HAProxy, cert-manager, Monitoring):
 ```
 Developer
     |
@@ -115,7 +121,9 @@ homelab-foundations/
 │   ├── flux-system/          # Flux bootstrap files
 │   ├── namespaces.yaml       # Namespace definitions
 │   ├── metallb/              # Load balancer config
-│   ├── longhorn/             # Storage CSI config
+│   ├── cert-manager/         # TLS certificate management
+│   ├── haproxy-ingress/      # HAProxy ingress controller
+│   ├── monitoring/           # Prometheus, Grafana, Alertmanager
 │   └── kustomization.yaml    # Main orchestration
 ├── infrastructure/
 │   └── helm-repositories/    # Helm repo definitions
@@ -130,12 +138,14 @@ homelab-foundations/
 
 | Service | Type | Port | Access | Management |
 |---------|------|------|--------|------------|
+| HAProxy Ingress | LoadBalancer | 80/443 (HTTP/HTTPS) | External | Flux |
 | Grafana | LoadBalancer | 3000 (HTTP) | External | Flux |
 | MinIO S3 API | LoadBalancer | 443 (HTTPS) | External | Helmfile |
 | MinIO Console | LoadBalancer | 9443 (HTTPS) | External | Helmfile |
+| Longhorn UI | LoadBalancer | 80 (HTTP) | External | K3s ServiceLB |
+| Traefik (K3s) | LoadBalancer | 80/443 (HTTP/HTTPS) | External | K3s Default |
 | Prometheus | ClusterIP | 9090 | Internal/Grafana | Flux |
 | Alertmanager | ClusterIP | 9093 | Internal | Flux |
-| Longhorn UI | ClusterIP | 80 | Port-forward | Flux |
 | Kubernetes API | - | 6443 | kubectl | - |
 
 ## Data Flow
@@ -220,15 +230,19 @@ Kubernetes Resources
 ## Monitoring & Observability
 
 ### Current State
+- **Prometheus**: Metrics collection and storage (30-day retention)
+- **Grafana**: Dashboards and visualization (accessible via LoadBalancer)
+- **Alertmanager**: Alert management and routing
+- **Node Exporter**: Host-level metrics collection
+- **Kube State Metrics**: Kubernetes object metrics
 - **Flux**: Built-in reconciliation monitoring
 - **Longhorn**: Web UI for storage monitoring
 - **MinIO**: Built-in metrics endpoint
 
 ### Recommended Additions
-- **Prometheus**: Metrics collection
-- **Grafana**: Visualization
 - **Loki**: Log aggregation
-- **AlertManager**: Alerting
+- **Jaeger**: Distributed tracing
+- **Blackbox Exporter**: Endpoint monitoring
 
 ## Backup Strategy
 

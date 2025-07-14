@@ -1,7 +1,7 @@
 # Homelab Foundations - Quick Reference
 
-**Version**: 1.0
-**Date**: 2025-07-13
+**Version**: 1.1
+**Date**: 2025-07-14
 **Author**: Community Contributors
 **Status**: Active
 
@@ -18,14 +18,16 @@ kubectl cluster-info
 ```
 
 ### Service URLs
-- **Grafana**: http://10.0.0.244:3000 (admin/grafana123)
-- **MinIO Console**: https://10.0.0.243:9443 (minio/minio123)
-- **MinIO S3 API**: https://10.0.0.242:443
-- **Longhorn UI**: Port-forward required: `kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80`
+- **HAProxy Ingress**: http://10.0.0.244 (HTTP/HTTPS ingress controller)
+- **Grafana**: http://10.0.0.245:3000 (admin/grafana123)
+- **MinIO Console**: https://10.0.0.242:9443 (minio/minio123)
+- **MinIO S3 API**: https://10.0.0.241:443
+- **Longhorn UI**: http://10.0.0.243 (via LoadBalancer)
+- **Traefik (K3s)**: http://10.0.0.240 (default K3s ingress)
 
 ### Hybrid GitOps Workflow
 
-**Flux-managed components** (MetalLB, Longhorn):
+**Flux-managed components** (MetalLB, HAProxy, cert-manager, Monitoring):
 ```bash
 # Make changes, then:
 git add .
@@ -68,6 +70,10 @@ kubectl get svc -n monitoring
 # cert-manager status
 kubectl get pods -n cert-manager
 kubectl get clusterissuers
+
+# HAProxy ingress status
+kubectl get pods -n haproxy-controller
+kubectl get svc -n haproxy-controller
 ```
 
 ## Common Fixes
@@ -177,9 +183,12 @@ helmfile apply
 
 ### Important Configs
 - **Flux System**: `clusters/um890/flux-system/`
-- **Longhorn**: `clusters/um890/longhorn/`
-- **MinIO**: `minio/` (Helmfile-managed)
 - **MetalLB**: `clusters/um890/metallb/`
+- **HAProxy Ingress**: `clusters/um890/haproxy-ingress/`
+- **cert-manager**: `clusters/um890/cert-manager/`
+- **Monitoring**: `clusters/um890/monitoring/`
+- **Longhorn**: `longhorn/` (Helmfile-managed)
+- **MinIO**: `minio/` (Helmfile-managed)
 
 ## When Things Break
 

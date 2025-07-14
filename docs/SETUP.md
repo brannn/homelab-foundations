@@ -1,7 +1,7 @@
 # Homelab Setup Guide
 
-**Version**: 1.0
-**Date**: 2025-07-13
+**Version**: 1.1
+**Date**: 2025-07-14
 **Author**: Community Contributors
 **Status**: Active
 
@@ -82,19 +82,51 @@ kubectl get namespaces
 kubectl get pods -n metallb-system
 kubectl get ipaddresspool -n metallb-system
 
-# Check Longhorn
+# Check cert-manager
+kubectl get pods -n cert-manager
+
+# Check HAProxy Ingress Controller
+kubectl get pods -n haproxy-controller
+kubectl get svc -n haproxy-controller
+
+# Check Monitoring Stack
+kubectl get pods -n monitoring
+kubectl get svc -n monitoring
+
+# Check Longhorn (Helmfile-managed)
 kubectl get pods -n longhorn-system
 kubectl get storageclass
 
-# Check MinIO Operator
+# Check MinIO (Helmfile-managed)
 kubectl get pods -n minio-operator
-
-# Check MinIO Tenant
 kubectl get tenant -n minio-tenant
 kubectl get pods -n minio-tenant
 ```
 
 ## Accessing Services
+
+### HAProxy Ingress Controller
+
+1. Get the LoadBalancer IP:
+   ```bash
+   kubectl get svc -n haproxy-controller
+   ```
+
+2. Access at `http://<LOADBALANCER-IP>` for HTTP traffic
+3. Access at `https://<LOADBALANCER-IP>` for HTTPS traffic
+
+### Grafana Dashboard
+
+1. Get the LoadBalancer IP:
+   ```bash
+   kubectl get svc -n monitoring
+   ```
+
+2. Access at `http://<LOADBALANCER-IP>:3000`
+
+3. Default credentials:
+   - Username: `admin`
+   - Password: `grafana123`
 
 ### MinIO Console
 
@@ -111,12 +143,12 @@ kubectl get pods -n minio-tenant
 
 ### Longhorn UI
 
-1. Port-forward to access:
+1. Get the LoadBalancer IP:
    ```bash
-   kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
+   kubectl get svc -n longhorn-system
    ```
 
-2. Access at `http://localhost:8080`
+2. Access at `http://<LOADBALANCER-IP>`
 
 ## Security Hardening
 
@@ -193,7 +225,14 @@ kubectl get pvc -A
 
 ### Monitoring
 
+Current monitoring stack includes:
+- **Prometheus**: Metrics collection and storage (30-day retention)
+- **Grafana**: Dashboards and visualization (accessible via LoadBalancer)
+- **Alertmanager**: Alert management and routing
+- **Node Exporter**: Host-level metrics collection
+- **Kube State Metrics**: Kubernetes object metrics
+
 Consider adding:
-- Prometheus + Grafana for metrics
-- Loki for log aggregation
-- AlertManager for notifications
+- **Loki**: Log aggregation
+- **Jaeger**: Distributed tracing
+- **Blackbox Exporter**: Endpoint monitoring
