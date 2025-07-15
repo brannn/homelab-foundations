@@ -31,3 +31,17 @@ spec:
                 name: clickhouse-lb
                 port:
                   number: 8123
+          - path: /play
+            pathType: Prefix
+            backend:
+              service:
+                name: clickhouse-lb
+                port:
+                  number: 8123
+          - path: /dashboard
+            pathType: Prefix
+            backend:
+              service:
+                name: clickhouse-lb
+                port:
+                  number: 8123

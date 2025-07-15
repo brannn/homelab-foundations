@@ -181,6 +181,7 @@ homelab-foundations/
 | NATS Server | ClusterIP | 4222 (NATS) | Internal | Flux |
 | NATS Monitoring | ClusterIP | 8222 (HTTP) | Internal/Prometheus | Flux |
 | ClickHouse HTTP | LoadBalancer | 8123 (HTTP) | External | Flux |
+| ClickHouse Web UI | LoadBalancer | 8123/play, 8123/dashboard (HTTP) | External | Flux |
 | ClickHouse Native | LoadBalancer | 9000 (TCP) | External | Flux |
 | ClickHouse Metrics | LoadBalancer | 9363 (HTTP) | External/Prometheus | Flux |
 | Prometheus | ClusterIP | 9090 | Internal/Grafana | Flux |

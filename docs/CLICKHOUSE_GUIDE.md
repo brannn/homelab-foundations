@@ -27,16 +27,18 @@ ClickHouse is a high-performance columnar database management system (DBMS) opti
 
 ## Access Methods
 
-### LoadBalancer Service (MetalLB)
-- **IP Address**: 10.0.0.248
-- **HTTP Interface**: Port 8123
-- **Native Protocol**: Port 9000
-- **Metrics**: Port 9363
-
-### HAProxy Ingress
+### HAProxy Ingress (Recommended)
 - **Hostname**: clickhouse.homelab.local
 - **Protocol**: HTTP/HTTPS
 - **TLS**: Self-signed certificates via cert-manager
+- **Web UI**: /play (SQL editor), /dashboard (monitoring)
+- **HTTP API**: All standard ClickHouse HTTP endpoints
+
+### LoadBalancer Service (MetalLB)
+- **IP Address**: 10.0.0.248
+- **HTTP Interface**: Port 8123
+- **Native Protocol**: Port 9000 (for native ClickHouse clients)
+- **Metrics**: Port 9363 (for Prometheus)
 
 ### Internal Access
 ```bash
@@ -62,12 +64,57 @@ kubectl exec -it -n clickhouse chi-homelab-clickhouse-homelab-cluster-0-0-0 -- \
 
 ### HTTP Interface
 ```bash
-# Simple query via HTTP
+# Simple query via HAProxy ingress (recommended)
+curl "https://clickhouse.homelab.local/?query=SELECT%201"
+
+# Or via LoadBalancer (direct access)
 curl "http://10.0.0.248:8123/?query=SELECT%201"
 
 # With authentication (if configured)
-curl -u username:password "http://10.0.0.248:8123/?query=SELECT%201"
+curl -u username:password "https://clickhouse.homelab.local/?query=SELECT%201"
 ```
+
+### Web UI Options
+
+ClickHouse doesn't include a built-in web UI, but several community options are available:
+
+#### 1. Built-in Web Interfaces
+ClickHouse includes several built-in web interfaces:
+
+**ClickHouse Play (SQL Editor):**
+```bash
+# Access via HAProxy ingress (recommended)
+https://clickhouse.homelab.local/play
+# or direct LoadBalancer access
+http://10.0.0.248:8123/play
+```
+
+**ClickHouse Dashboard (Monitoring):**
+```bash
+# Access via HAProxy ingress (recommended)
+https://clickhouse.homelab.local/dashboard
+# or direct LoadBalancer access
+http://10.0.0.248:8123/dashboard
+```
+
+#### 2. Tabix (Community Web UI)
+Popular web-based SQL client for ClickHouse:
+```bash
+# Deploy Tabix as a separate service
+kubectl create deployment tabix --image=spoonest/clickhouse-tabix-web-client -n clickhouse
+kubectl expose deployment tabix --port=80 --type=LoadBalancer -n clickhouse
+```
+
+#### 3. DBeaver (Desktop Client)
+Professional database client with ClickHouse support:
+- Download from: https://dbeaver.io/
+- Connection: JDBC URL `jdbc:clickhouse://10.0.0.248:8123/default`
+
+#### 4. Grafana Integration
+For visualization and dashboards:
+- Add ClickHouse data source to existing Grafana
+- Connection: `http://10.0.0.248:8123`
+- Use for real-time monitoring dashboards
 
 ## Database Operations
 

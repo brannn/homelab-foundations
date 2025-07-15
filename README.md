@@ -177,8 +177,9 @@ homelab-foundations/
 - **Architecture**: Single-node deployment with Altinity operator
 - **Memory**: 2Gi allocation (1Gi requests, 2Gi limits)
 - **Storage**: Longhorn-backed persistent volume (20Gi)
-- **HTTP Interface**: http://10.0.0.248:8123
-- **Native Protocol**: Port 9000
+- **HTTP Interface**: https://clickhouse.homelab.local (HAProxy ingress)
+- **Web UI**: https://clickhouse.homelab.local/play (SQL editor), /dashboard (monitoring)
+- **Native Protocol**: 10.0.0.248:9000 (LoadBalancer)
 - **Monitoring**: Prometheus metrics on port 9363
 - **Features**: Columnar storage, real-time analytics, high-performance OLAP
 - **Use Case**: Real-time IoT data analytics and time-series processing
