@@ -1,6 +1,15 @@
 # Homelab Foundations - Troubleshooting Guide
 
-## 🚨 Problem Categories
+**Version**: 1.0
+**Date**: 2025-07-15
+**Author**: Community Contributors (with Augment Agent)
+**Status**: Active
+
+## Overview
+
+This troubleshooting guide provides systematic approaches to diagnose and resolve common issues in the homelab-foundations Kubernetes cluster. The guide covers GitOps/Flux problems, storage issues, networking problems, and application-specific troubleshooting.
+
+## Problem Categories
 
 ### 1. GitOps/Flux Issues
 

@@ -1,6 +1,8 @@
 # NATS + JetStream Messaging Guide
 
+**Version**: 1.0
 **Date**: 2025-07-15
+**Author**: Community Contributors (with Augment Agent)
 **Status**: Active
 
 ## Overview
