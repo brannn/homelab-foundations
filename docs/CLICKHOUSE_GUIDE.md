@@ -186,20 +186,134 @@ WHERE timestamp >= now() - INTERVAL 1 HOUR
 GROUP BY sensor_id;
 ```
 
-## Integration with Data Pipeline
+## ClickHouse Engines
 
-### NATS Integration
-ClickHouse can consume data from NATS streams for real-time analytics:
+### Engine Types
+
+ClickHouse engines determine how data is stored, accessed, and processed. The `SHOW ENGINES` command displays all available engines.
+
+#### **Table Engines (Data Storage)**
+- **MergeTree**: Primary engine for analytical workloads (OLAP)
+- **ReplacingMergeTree**: Deduplicates rows with same primary key
+- **SummingMergeTree**: Pre-aggregates numeric columns
+- **Log**: Simple append-only storage for small datasets
+
+#### **Integration Engines (External Systems)**
+These create virtual tables that connect to external data sources:
+
+### NATS Engine Integration
+
+Connect directly to NATS streams for real-time data ingestion:
 
 ```sql
--- Create table for NATS stream data
-CREATE TABLE analytics.nats_events (
-    event_time DateTime,
-    subject String,
-    data String
-) ENGINE = MergeTree()
-ORDER BY (subject, event_time);
+-- Create table that reads from NATS stream
+CREATE TABLE analytics.nats_temperature_stream (
+    timestamp DateTime,
+    sensor_id String,
+    temperature Float32,
+    location String
+) ENGINE = NATS
+SETTINGS
+    nats_url = 'nats://nats.nats.svc.cluster.local:4222',
+    nats_subjects = 'sensors.temperature',
+    nats_format = 'JSONEachRow',
+    nats_row_delimiter = '\n';
+
+-- Query real-time data from NATS
+SELECT * FROM analytics.nats_temperature_stream LIMIT 10;
+
+-- Create materialized view to store NATS data
+CREATE MATERIALIZED VIEW analytics.nats_to_storage TO analytics.sensor_data AS
+SELECT
+    timestamp,
+    sensor_id,
+    location,
+    temperature,
+    0 as humidity,  -- default value
+    0 as pressure   -- default value
+FROM analytics.nats_temperature_stream;
 ```
+
+### Iceberg Engine Integration
+
+Connect to Apache Iceberg tables via REST catalog:
+
+```sql
+-- Connect to existing Iceberg table
+CREATE TABLE analytics.iceberg_historical_data (
+    timestamp DateTime,
+    sensor_id String,
+    temperature Float32,
+    humidity Float32,
+    location String
+) ENGINE = Iceberg('http://iceberg-rest-catalog-lb.iceberg-system.svc.cluster.local:8181', 'homelab.sensors.historical_data');
+
+-- Query Iceberg data alongside ClickHouse data
+SELECT
+    'realtime' as source,
+    avg(temperature) as avg_temp,
+    count() as record_count
+FROM analytics.sensor_data
+WHERE timestamp >= now() - INTERVAL 1 HOUR
+
+UNION ALL
+
+SELECT
+    'historical' as source,
+    avg(temperature) as avg_temp,
+    count() as record_count
+FROM analytics.iceberg_historical_data
+WHERE timestamp >= now() - INTERVAL 24 HOUR;
+```
+
+### Other Integration Engines
+
+**MySQL Engine**:
+```sql
+CREATE TABLE mysql_data (
+    id UInt64,
+    name String
+) ENGINE = MySQL('mysql-server:3306', 'database', 'table', 'user', 'password');
+```
+
+**PostgreSQL Engine**:
+```sql
+CREATE TABLE postgres_data (
+    id UInt64,
+    data String
+) ENGINE = PostgreSQL('postgres-server:5432', 'database', 'table', 'user', 'password');
+```
+
+**S3 Engine** (for MinIO):
+```sql
+CREATE TABLE s3_data (
+    timestamp DateTime,
+    data String
+) ENGINE = S3('http://minio-tenant-hl.minio-tenant.svc.cluster.local:9000/bucket/path/*.parquet', 'access_key', 'secret_key', 'Parquet');
+```
+
+## Integration with Data Pipeline
+
+### Engine Discovery and Configuration
+
+**Check Available Engines**:
+```sql
+-- List all available engines
+SHOW ENGINES;
+
+-- Check specific engine support
+SELECT * FROM system.table_engines WHERE name = 'NATS';
+
+-- View engine settings
+SELECT * FROM system.settings WHERE name LIKE '%nats%';
+```
+
+**Engine Configuration**:
+Most integration engines are configured via:
+- **Connection strings**: URLs, hostnames, ports
+- **Authentication**: Usernames, passwords, tokens
+- **Format settings**: Data formats (JSON, Parquet, CSV, etc.)
+- **Behavioral settings**: Timeouts, batch sizes, etc.
 
 ### Trino Integration
 ClickHouse can be accessed from Trino for federated queries:
@@ -207,6 +321,19 @@ ClickHouse can be accessed from Trino for federated queries:
 1. Configure ClickHouse connector in Trino
 2. Query across ClickHouse and Iceberg tables
 3. Combine real-time (ClickHouse) and batch (Iceberg) analytics
+
+**Example Trino Query**:
+```sql
+-- Query from Trino across multiple systems
+SELECT
+    ch.sensor_id,
+    ch.avg_temp as realtime_avg,
+    ic.avg_temp as historical_avg
+FROM clickhouse.analytics.sensor_data ch
+JOIN iceberg.homelab.historical_sensors ic
+  ON ch.sensor_id = ic.sensor_id
+WHERE ch.timestamp >= current_timestamp - INTERVAL '1' HOUR;
+```
 
 ## Monitoring
 
@@ -344,13 +471,98 @@ RESTORE TABLE analytics.sensor_data FROM Disk('backups', 'sensor_data_backup.zip
 - Configure automated snapshots for persistent volumes
 - Test restore procedures regularly
 
+## Complete Data Pipeline Example
+
+### Real-time IoT Pipeline with NATS and Iceberg
+
+**Step 1: Create storage table**:
+```sql
+CREATE DATABASE IF NOT EXISTS iot;
+
+CREATE TABLE iot.sensor_readings (
+    timestamp DateTime,
+    sensor_id String,
+    location String,
+    temperature Float32,
+    humidity Float32,
+    pressure Float32
+) ENGINE = MergeTree()
+ORDER BY (sensor_id, timestamp)
+PARTITION BY toYYYYMM(timestamp);
+```
+
+**Step 2: Create NATS stream reader**:
+```sql
+CREATE TABLE iot.nats_sensor_stream (
+    timestamp DateTime,
+    sensor_id String,
+    location String,
+    temperature Float32,
+    humidity Float32,
+    pressure Float32
+) ENGINE = NATS
+SETTINGS
+    nats_url = 'nats://nats.nats.svc.cluster.local:4222',
+    nats_subjects = 'iot.sensors.*',
+    nats_format = 'JSONEachRow';
+```
+
+**Step 3: Create materialized view for real-time ingestion**:
+```sql
+CREATE MATERIALIZED VIEW iot.realtime_ingestion TO iot.sensor_readings AS
+SELECT * FROM iot.nats_sensor_stream;
+```
+
+**Step 4: Create Iceberg connection for historical data**:
+```sql
+CREATE TABLE iot.historical_readings (
+    timestamp DateTime,
+    sensor_id String,
+    location String,
+    temperature Float32,
+    humidity Float32,
+    pressure Float32
+) ENGINE = Iceberg('http://iceberg-rest-catalog-lb.iceberg-system.svc.cluster.local:8181', 'homelab.iot.historical_sensors');
+```
+
+**Step 5: Query combined real-time and historical data**:
+```sql
+-- Combined analytics query
+WITH realtime_data AS (
+    SELECT
+        location,
+        avg(temperature) as avg_temp,
+        count() as readings
+    FROM iot.sensor_readings
+    WHERE timestamp >= now() - INTERVAL 1 HOUR
+    GROUP BY location
+),
+historical_data AS (
+    SELECT
+        location,
+        avg(temperature) as avg_temp,
+        count() as readings
+    FROM iot.historical_readings
+    WHERE timestamp >= now() - INTERVAL 24 HOUR
+    GROUP BY location
+)
+SELECT
+    r.location,
+    r.avg_temp as realtime_avg,
+    h.avg_temp as historical_avg,
+    r.readings as realtime_count,
+    h.readings as historical_count
+FROM realtime_data r
+FULL OUTER JOIN historical_data h ON r.location = h.location;
+```
+
 ## Use Cases
 
 ### IoT Data Analytics
-- Real-time sensor data ingestion
-- Time-series analysis
-- Anomaly detection
-- Dashboard visualization
+- Real-time sensor data ingestion via NATS engine
+- Time-series analysis with MergeTree partitioning
+- Anomaly detection using statistical functions
+- Dashboard visualization with Grafana integration
 
 ### Log Analytics
 - Application log processing
