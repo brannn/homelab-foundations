@@ -26,6 +26,8 @@ kubectl cluster-info
 - **Traefik (K3s)**: http://10.0.0.240 (default K3s ingress)
 - **Trino Web UI**: http://10.0.0.246:8080 (no authentication)
 - **Iceberg REST API**: http://10.0.0.247:8181 (catalog management)
+- **NATS Server**: nats://10.0.0.248:4222 (messaging protocol)
+- **NATS Monitoring**: http://10.0.0.248:8222 (metrics and health)
 
 ### Hybrid GitOps Workflow
 
@@ -120,6 +122,42 @@ curl -X POST http://10.0.0.246:8080/v1/statement \
   -H "Content-Type: application/json" \
   -H "X-Trino-User: admin" \
   -d '{"query":"SHOW CATALOGS"}'
+```
+
+## NATS + JetStream Messaging
+
+### Quick Access
+```bash
+# Get NATS box pod name
+NATS_BOX=$(kubectl get pods -n nats -l app=nats-box -o jsonpath='{.items[0].metadata.name}')
+
+# Connect to NATS
+kubectl exec -n nats $NATS_BOX -- nats --server nats://nats:4222 server info
+```
+
+### Essential Commands
+```bash
+# List streams
+kubectl exec -n nats $NATS_BOX -- nats --server nats://nats:4222 stream ls
+
+# Create IoT stream
+kubectl exec -n nats $NATS_BOX -- nats --server nats://nats:4222 stream add iot-sensors \
+  --subjects "sensors.>" --storage file --retention limits --max-age=24h --replicas=1 --defaults
+
+# Publish test message
+kubectl exec -n nats $NATS_BOX -- nats --server nats://nats:4222 pub sensors.temperature.room1 "22.5"
+
+# Subscribe to messages
+kubectl exec -n nats $NATS_BOX -- nats --server nats://nats:4222 sub sensors.>
+```
+
+### Monitoring
+```bash
+# Check JetStream status
+kubectl exec -n nats $NATS_BOX -- nats --server nats://nats:4222 stream info iot-sensors
+
+# View metrics
+curl http://10.0.0.248:8222/varz
 ```
 
 ## Common Fixes

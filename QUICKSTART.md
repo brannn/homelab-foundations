@@ -7,7 +7,7 @@
 
 ## Overview
 
-This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, and comprehensive monitoring with Prometheus + Grafana.
+This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, comprehensive monitoring with Prometheus + Grafana, analytics with Trino + Iceberg, and IoT messaging with NATS + JetStream.
 
 **Architecture**: Core storage components are managed via Helmfile for high availability, while other services use GitOps (Flux) for automated deployment and management.
 
@@ -173,6 +173,29 @@ kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
 ```
 Open browser to: `http://localhost:8080`
 
+### 4.5 Access Trino Analytics Engine
+1. Find the Trino IP: `kubectl get svc trino-coordinator-lb -n iceberg-system`
+2. Open browser to: `http://TRINO_IP:8080`
+3. No authentication required - direct access to query interface
+4. Use Trino CLI for advanced queries:
+```bash
+# Download Trino CLI
+curl -o trino https://repo1.maven.org/maven2/io/trino/trino-cli/476/trino-cli-476-executable.jar
+chmod +x trino
+
+# Connect to cluster
+./trino --server http://TRINO_IP:8080 --user admin
+```
+
+### 4.6 Test NATS + JetStream Messaging
+```bash
+# Test NATS connectivity
+kubectl exec -n nats nats-box-XXXXX -- nats --server nats://nats:4222 stream ls
+
+# Create a test stream for IoT data
+kubectl exec -n nats nats-box-XXXXX -- nats --server nats://nats:4222 stream add iot-sensors --subjects "sensors.>" --storage file --retention limits --max-age=24h --replicas=1 --defaults
+```
+
 ## Step 5: Test GitOps Workflow
 
 ### 5.1 Make a Change
@@ -205,6 +228,8 @@ flux get all
 - **cert-manager** providing TLS certificate management
 - **MinIO** providing S3-compatible object storage
 - **Prometheus + Grafana** providing comprehensive monitoring
+- **Trino + Iceberg** providing analytics engine and data lake capabilities
+- **NATS + JetStream** providing high-performance messaging for IoT data streams
 
 ### GitOps Workflow
 - **Flux** automatically syncs infrastructure changes from Git
@@ -216,6 +241,9 @@ flux get all
 - **MinIO S3 API**: S3-compatible API for applications
 - **Grafana**: Monitoring dashboards and metrics visualization
 - **Longhorn UI**: Storage management interface
+- **Trino Web UI**: SQL query interface for analytics (no authentication)
+- **Trino CLI**: Command-line SQL interface for advanced queries
+- **NATS**: High-performance messaging system for IoT data streams
 - **Kubernetes API**: Full cluster management via kubectl
 
 ## Next Steps

@@ -24,6 +24,7 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 - **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards - *kube-prometheus-stack v61.3.2, Grafana v8.4.2*
 - **Analytics Engine**: Trino distributed SQL query engine - *Chart version 1.39.1, Trino v476*
 - **Data Lake**: Apache Iceberg REST Catalog for ACID transactions and schema evolution - *Tabular REST Catalog v0.1.0*
+- **Messaging System**: NATS with JetStream for high-performance IoT data ingestion - *Chart version 1.1.12, NATS v2.10.11*
 
 ## Architecture Decisions
 
@@ -65,6 +66,9 @@ homelab-foundations/
 │       │   ├── services.yaml     # LoadBalancer services
 │       │   ├── ingress.yaml      # HAProxy ingress configuration
 │       │   └── kustomization.yaml # Trino kustomization
+│       ├── nats/                 # NATS messaging system with JetStream
+│       │   ├── helmrelease.yaml  # NATS + JetStream Helm deployment
+│       │   └── kustomization.yaml # NATS kustomization
 │       └── kustomization.yaml    # Main cluster kustomization
 ├── infrastructure/
 │   └── helm-repositories/        # Helm repository definitions
@@ -165,6 +169,16 @@ homelab-foundations/
 - **Credentials**: Kubernetes secret integration with MinIO
 - **Features**: Table metadata management, schema versioning, partition evolution
 
+### NATS Messaging System (Flux-managed)
+- **Namespace**: nats
+- **Architecture**: Single-node deployment with JetStream persistence
+- **Memory**: 512Mi allocation (1Gi JetStream memory + 10Gi file storage)
+- **Storage**: Longhorn-backed persistent volume for JetStream file storage
+- **Client Port**: 4222 (NATS protocol)
+- **Monitoring**: Prometheus metrics on port 8222
+- **Features**: High-performance messaging, stream persistence, message replay
+- **Use Case**: IoT sensor data ingestion and stream processing
+
 ## Management
 
 ### Updating Configurations
@@ -239,6 +253,7 @@ kubectl get tenant -n minio-tenant
 - **[HAProxy Ingress Guide](docs/HAPROXY_INGRESS.md)** - HAProxy ingress controller usage
 - **[Monitoring Guide](docs/MONITORING.md)** - Prometheus + Grafana stack details
 - **[Trino Guide](docs/TRINO_GUIDE.md)** - Analytics engine and Iceberg data lake usage
+- **[NATS Guide](docs/NATS_GUIDE.md)** - Messaging system and JetStream for IoT data streams
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)** - Problem diagnosis and fixes
 
 ### Application Examples
@@ -259,6 +274,8 @@ kubectl get tenant -n minio-tenant
 - [MetalLB Documentation](https://metallb.universe.tf/)
 - [Trino Documentation](https://trino.io/docs/current/)
 - [Apache Iceberg Documentation](https://iceberg.apache.org/docs/latest/)
+- [NATS Documentation](https://docs.nats.io/)
+- [JetStream Documentation](https://docs.nats.io/nats-concepts/jetstream)
 
 ## Contributing
 
