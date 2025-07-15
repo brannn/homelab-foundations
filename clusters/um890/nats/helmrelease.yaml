@@ -15,47 +15,61 @@ spec:
         namespace: flux-system
   interval: 5m
   values:
-    # JetStream configuration
-    jetstream:
-      enabled: true
-      memStorage:
+    # NATS configuration
+    config:
+      # JetStream configuration
+      jetstream:
         enabled: true
-        size: 1Gi
-      fileStorage:
+        fileStore:
+          enabled: true
+          dir: /data
+          pvc:
+            enabled: true
+            size: 10Gi
+            storageClassName: longhorn
+        memoryStore:
+          enabled: true
+          maxSize: 1Gi
+
+      # Monitor configuration for Prometheus
+      monitor:
         enabled: true
-        size: 10Gi
-        storageDirectory: /data
-        storageClassName: longhorn  # Use Longhorn storage
-    
-    # NATS server configuration
-    nats:
+        port: 8222
+
+    # NATS container configuration
+    container:
       image:
         tag: 2.10.11
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 500m
-          memory: 512Mi
-    
-    # Prometheus metrics integration
-    prometheus:
+      env:
+        GOMEMLIMIT: 450MiB  # Set Go memory limit below container limit
+      merge:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+
+    # Prometheus exporter
+    promExporter:
       enabled: true
-    
+      port: 7777
+
     # Service configuration
     service:
-      type: ClusterIP
+      enabled: true
+      merge:
+        type: ClusterIP
       ports:
-        client: 4222
-        monitoring: 8222
-    
-    # Security context for homelab
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000
-    containerSecurityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-          - ALL
+        nats:
+          enabled: true
+        monitor:
+          enabled: true
