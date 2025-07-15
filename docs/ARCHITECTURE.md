@@ -104,6 +104,14 @@ MetalLB LoadBalancer Pool
     - **Use Case**: IoT sensor data ingestion and stream processing
     - **Monitoring**: Prometheus metrics integration
 
+11. **Analytics Database** (Flux-managed)
+    - **ClickHouse**: Columnar database for real-time analytics
+    - **Memory**: 2Gi allocation (1Gi requests, 2Gi limits)
+    - **Storage**: Longhorn-backed persistent volume (20Gi)
+    - **Operator**: Altinity ClickHouse Operator v0.25.0
+    - **Use Case**: Real-time IoT data analytics and time-series processing
+    - **Monitoring**: Prometheus metrics integration
+
 ### Hybrid GitOps Workflow
 
 **Flux-managed components** (MetalLB, HAProxy, cert-manager, Monitoring):
@@ -147,6 +155,7 @@ homelab-foundations/
 │   ├── monitoring/           # Prometheus, Grafana, Alertmanager
 │   ├── trino/                # Trino analytics engine + Iceberg REST catalog
 │   ├── nats/                 # NATS messaging system with JetStream
+│   ├── clickhouse/           # ClickHouse analytics database
 │   └── kustomization.yaml    # Main orchestration
 ├── infrastructure/
 │   └── helm-repositories/    # Helm repo definitions
@@ -171,6 +180,9 @@ homelab-foundations/
 | Iceberg REST API | LoadBalancer | 8181 (HTTP) | External | Flux |
 | NATS Server | ClusterIP | 4222 (NATS) | Internal | Flux |
 | NATS Monitoring | ClusterIP | 8222 (HTTP) | Internal/Prometheus | Flux |
+| ClickHouse HTTP | LoadBalancer | 8123 (HTTP) | External | Flux |
+| ClickHouse Native | LoadBalancer | 9000 (TCP) | External | Flux |
+| ClickHouse Metrics | LoadBalancer | 9363 (HTTP) | External/Prometheus | Flux |
 | Prometheus | ClusterIP | 9090 | Internal/Grafana | Flux |
 | Alertmanager | ClusterIP | 9093 | Internal | Flux |
 | Kubernetes API | - | 6443 | kubectl | - |
@@ -209,6 +221,8 @@ IoT Sensors
     v (NATS Protocol)
 NATS + JetStream
     |
+    +-- v (Real-time Stream) --> ClickHouse (Real-time Analytics)
+    |
     v (Stream Processing)
 Analytics Application
     |
@@ -226,6 +240,8 @@ MinIO Storage
 ```
 Raw Data (NATS Streams)
     |
+    +-- v (Real-time) --> ClickHouse --> Grafana (Real-time Dashboards)
+    |
     v (ETL Process)
 Iceberg Tables (MinIO S3)
     |
@@ -233,7 +249,7 @@ Iceberg Tables (MinIO S3)
 Trino Query Engine
     |
     v (Visualization)
-Grafana Dashboards
+Grafana Dashboards (Historical Analysis)
 ```
 
 ### Hybrid GitOps
@@ -301,6 +317,7 @@ Kubernetes Resources
 - **MinIO**: Built-in metrics endpoint
 - **Trino**: JMX metrics exported to Prometheus
 - **NATS**: Built-in metrics endpoint and Prometheus exporter
+- **ClickHouse**: Built-in metrics endpoint and Prometheus integration
 - **Iceberg REST Catalog**: Application metrics and health checks
 
 ### Recommended Additions

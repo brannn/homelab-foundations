@@ -25,6 +25,7 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 - **Analytics Engine**: Trino distributed SQL query engine - *Chart version 1.39.1, Trino v476*
 - **Data Lake**: Apache Iceberg REST Catalog for ACID transactions and schema evolution - *Tabular REST Catalog v0.1.0*
 - **Messaging System**: NATS with JetStream for high-performance IoT data ingestion - *Chart version 1.1.12, NATS v2.10.11*
+- **Analytics Database**: ClickHouse columnar database for real-time analytics - *Altinity Operator v0.25.0, ClickHouse v25.6.3*
 
 ## Architecture Decisions
 
@@ -66,6 +67,7 @@ homelab-foundations/
 │       │   └── kube-state-metrics/ # Kubernetes metrics
 │       ├── trino/                # Trino analytics engine + Iceberg REST catalog
 │       ├── nats/                 # NATS messaging system with JetStream
+│       ├── clickhouse/           # ClickHouse analytics database
 │       └── kustomization.yaml    # Main cluster kustomization
 ├── infrastructure/
 │   └── helm-repositories/        # Helm repository definitions
@@ -170,6 +172,17 @@ homelab-foundations/
 - **Features**: High-performance messaging, stream persistence, message replay
 - **Use Case**: IoT sensor data ingestion and stream processing
 
+### ClickHouse Analytics Database (Flux-managed)
+- **Namespace**: clickhouse
+- **Architecture**: Single-node deployment with Altinity operator
+- **Memory**: 2Gi allocation (1Gi requests, 2Gi limits)
+- **Storage**: Longhorn-backed persistent volume (20Gi)
+- **HTTP Interface**: http://10.0.0.248:8123
+- **Native Protocol**: Port 9000
+- **Monitoring**: Prometheus metrics on port 9363
+- **Features**: Columnar storage, real-time analytics, high-performance OLAP
+- **Use Case**: Real-time IoT data analytics and time-series processing
+
 ## Management
 
 ### Updating Configurations
@@ -245,6 +258,7 @@ kubectl get tenant -n minio-tenant
 - **[Monitoring Guide](docs/MONITORING.md)** - Prometheus + Grafana stack details
 - **[Trino Guide](docs/TRINO_GUIDE.md)** - Analytics engine and Iceberg data lake usage
 - **[NATS Guide](docs/NATS_GUIDE.md)** - Messaging system and JetStream for IoT data streams
+- **[ClickHouse Guide](docs/CLICKHOUSE_GUIDE.md)** - Real-time analytics database for IoT data processing
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)** - Problem diagnosis and fixes
 
 ### Application Examples
