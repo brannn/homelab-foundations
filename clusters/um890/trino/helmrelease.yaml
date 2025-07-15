@@ -64,7 +64,7 @@ spec:
         maxHeapSize: "3500m"  # 3.5GB heap as per plan
       config:
         query:
-          maxMemoryPerNode: "3GB"
+          maxMemoryPerNode: "2GB"  # Reduced to fit within heap with headroom
       resources:
         requests:
           cpu: 1000m
