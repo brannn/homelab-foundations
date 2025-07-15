@@ -26,26 +26,26 @@ spec:
         dataDir: "/data/trino"
       config:
         query:
-          maxMemory: "4GB"  # Total cluster memory for queries
+          maxMemory: "8GB"  # Total cluster memory for queries (coordinator + worker)
         https:
           enabled: false  # Use HTTP for simplicity in homelab
     
     # Coordinator configuration
     coordinator:
       jvm:
-        maxHeapSize: "1500m"  # 1.5GB heap as per plan
+        maxHeapSize: "3GB"  # Increased for better performance
       config:
         query:
-          maxMemoryPerNode: "1GB"
+          maxMemoryPerNode: "2GB"  # Increased with more headroom
         nodeScheduler:
           includeCoordinator: false  # Don't schedule work on coordinator
       resources:
         requests:
           cpu: 500m
-          memory: 2Gi
+          memory: 4Gi
         limits:
           cpu: 1000m
-          memory: 2Gi
+          memory: 4Gi
       # Health checks
       livenessProbe:
         initialDelaySeconds: 60
@@ -61,17 +61,17 @@ spec:
     # Worker configuration
     worker:
       jvm:
-        maxHeapSize: "3500m"  # 3.5GB heap as per plan
+        maxHeapSize: "5GB"  # Increased for better performance
       config:
         query:
-          maxMemoryPerNode: "2GB"  # Reduced to fit within heap with headroom
+          maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
       resources:
         requests:
           cpu: 1000m
-          memory: 4Gi
+          memory: 6Gi
         limits:
           cpu: 2000m
-          memory: 4Gi
+          memory: 6Gi
       # Health checks
       livenessProbe:
         initialDelaySeconds: 60
