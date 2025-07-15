@@ -14,6 +14,4 @@ resources:
   - ingress.yaml
 
 commonLabels:
-  app.kubernetes.io/managed-by: flux
   app.kubernetes.io/part-of: homelab-foundations
-  app.kubernetes.io/component: trino
