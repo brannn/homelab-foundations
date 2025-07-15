@@ -63,14 +63,9 @@ homelab-foundations/
 │       │   ├── prometheus/       # Prometheus monitoring
 │       │   ├── grafana/          # Grafana dashboards
 │       │   ├── node-exporter/    # Node metrics collection
-│       │   ├── kube-state-metrics/ # Kubernetes metrics
-│       │   └── kustomization.yaml # Monitoring kustomization
+│       │   └── kube-state-metrics/ # Kubernetes metrics
 │       ├── trino/                # Trino analytics engine + Iceberg REST catalog
-│       │   ├── iceberg-rest-catalog.yaml  # Iceberg REST catalog service
-│       │   └── [other Trino files...]
 │       ├── nats/                 # NATS messaging system with JetStream
-│       │   ├── helmrelease.yaml  # NATS + JetStream Helm deployment
-│       │   └── kustomization.yaml # NATS kustomization
 │       └── kustomization.yaml    # Main cluster kustomization
 ├── infrastructure/
 │   └── helm-repositories/        # Helm repository definitions
