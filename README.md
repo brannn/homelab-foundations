@@ -59,6 +59,12 @@ homelab-foundations/
 │       ├── cert-manager/         # Certificate management
 │       ├── haproxy-ingress/      # HAProxy Ingress Controller
 │       ├── monitoring/           # Prometheus + Grafana stack
+│       ├── trino/                # Trino analytics engine + Iceberg REST catalog
+│       │   ├── helmrelease.yaml  # Trino Helm deployment
+│       │   ├── iceberg-rest-catalog.yaml  # Iceberg REST catalog service
+│       │   ├── services.yaml     # LoadBalancer services
+│       │   ├── ingress.yaml      # HAProxy ingress configuration
+│       │   └── kustomization.yaml # Trino kustomization
 │       └── kustomization.yaml    # Main cluster kustomization
 ├── infrastructure/
 │   └── helm-repositories/        # Helm repository definitions
