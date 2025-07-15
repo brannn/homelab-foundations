@@ -25,5 +25,4 @@ spec:
       protocol: TCP
       name: metrics
   selector:
-    app.kubernetes.io/name: clickhouse
-    app.kubernetes.io/component: server
+    clickhouse.altinity.com/chi: homelab-clickhouse
