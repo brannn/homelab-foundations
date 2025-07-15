@@ -4,5 +4,5 @@ metadata:
   name: clickhouse
   namespace: flux-system
 spec:
-  url: https://charts.altinity.com
+  url: https://docs.altinity.com/clickhouse-operator/
   interval: 10m
