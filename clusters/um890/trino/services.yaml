@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/component: coordinator
     app.kubernetes.io/service: loadbalancer
   annotations:
-    metallb.universe.tf/loadBalancerIPs: "10.0.0.241"  # Reserve specific IP for Trino
+    metallb.universe.tf/loadBalancerIPs: "10.0.0.246"  # Available IP for Trino
 spec:
   type: LoadBalancer
   ports:
@@ -34,7 +34,7 @@ metadata:
     app.kubernetes.io/component: catalog
     app.kubernetes.io/service: loadbalancer
   annotations:
-    metallb.universe.tf/loadBalancerIPs: "10.0.0.242"  # Reserve specific IP for Iceberg REST
+    metallb.universe.tf/loadBalancerIPs: "10.0.0.247"  # Available IP for Iceberg REST
 spec:
   type: LoadBalancer
   ports:
