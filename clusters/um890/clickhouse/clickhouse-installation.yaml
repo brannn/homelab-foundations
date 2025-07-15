@@ -29,7 +29,7 @@ spec:
       
     users:
       default/password: ""  # No password for homelab
-      default/networks/ip: "10.0.0.0/24"  # Allow access from homelab network
+      default/networks/ip: "::/0"  # Allow access from any IP for homelab
       default/profile: default
       default/quota: default
       
