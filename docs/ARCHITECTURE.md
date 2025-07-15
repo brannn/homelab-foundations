@@ -1,8 +1,8 @@
 # Homelab Architecture Overview
 
-**Version**: 1.1
-**Date**: 2025-07-14
-**Author**: Community Contributors
+**Version**: 1.2
+**Date**: 2025-07-15
+**Author**: Community Contributors (with Augment Agent)
 **Status**: Active
 
 ## Overview
@@ -83,6 +83,27 @@ MetalLB LoadBalancer Pool
    - **Storage**: Longhorn-backed persistent volumes
    - **Dashboards**: Pre-configured for Kubernetes, nodes, and Longhorn
 
+8. **Analytics Engine** (Flux-managed)
+   - **Trino**: Distributed SQL query engine (1 coordinator + 1 worker)
+   - **Memory Allocation**: 10Gi total (4Gi coordinator, 6Gi worker)
+   - **Catalogs**: Iceberg, Memory, TPC-H, TPC-DS
+   - **Web UI**: LoadBalancer access on port 8080 (no authentication)
+   - **Integration**: Direct connection to MinIO S3 via Iceberg REST catalog
+
+9. **Data Lake** (Flux-managed)
+   - **Iceberg REST Catalog**: ACID transactions and schema evolution
+   - **Memory**: 512Mi allocation
+   - **Storage Backend**: MinIO S3 (iceberg bucket)
+   - **Features**: Table metadata management, time travel queries
+   - **API**: LoadBalancer access on port 8181
+
+10. **Messaging System** (Flux-managed)
+    - **NATS**: High-performance messaging server
+    - **JetStream**: Persistent message streaming (1Gi memory + 10Gi file storage)
+    - **Storage**: Longhorn-backed persistent volume
+    - **Use Case**: IoT sensor data ingestion and stream processing
+    - **Monitoring**: Prometheus metrics integration
+
 ### Hybrid GitOps Workflow
 
 **Flux-managed components** (MetalLB, HAProxy, cert-manager, Monitoring):
@@ -124,6 +145,8 @@ homelab-foundations/
 │   ├── cert-manager/         # TLS certificate management
 │   ├── haproxy-ingress/      # HAProxy ingress controller
 │   ├── monitoring/           # Prometheus, Grafana, Alertmanager
+│   ├── trino/                # Trino analytics engine + Iceberg REST catalog
+│   ├── nats/                 # NATS messaging system with JetStream
 │   └── kustomization.yaml    # Main orchestration
 ├── infrastructure/
 │   └── helm-repositories/    # Helm repo definitions
@@ -144,6 +167,10 @@ homelab-foundations/
 | MinIO Console | LoadBalancer | 9443 (HTTPS) | External | Helmfile |
 | Longhorn UI | LoadBalancer | 80 (HTTP) | External | K3s ServiceLB |
 | Traefik (K3s) | LoadBalancer | 80/443 (HTTP/HTTPS) | External | K3s Default |
+| Trino Web UI | LoadBalancer | 8080 (HTTP) | External | Flux |
+| Iceberg REST API | LoadBalancer | 8181 (HTTP) | External | Flux |
+| NATS Server | ClusterIP | 4222 (NATS) | Internal | Flux |
+| NATS Monitoring | ClusterIP | 8222 (HTTP) | Internal/Prometheus | Flux |
 | Prometheus | ClusterIP | 9090 | Internal/Grafana | Flux |
 | Alertmanager | ClusterIP | 9093 | Internal | Flux |
 | Kubernetes API | - | 6443 | kubectl | - |
@@ -173,6 +200,40 @@ Longhorn Storage
     |
     v (Local Disk)
 UM890Pro
+```
+
+### Analytics Pipeline
+```
+IoT Sensors
+    |
+    v (NATS Protocol)
+NATS + JetStream
+    |
+    v (Stream Processing)
+Analytics Application
+    |
+    v (SQL Queries)
+Trino Coordinator
+    |
+    v (Iceberg REST API)
+Iceberg REST Catalog
+    |
+    v (S3 API)
+MinIO Storage
+```
+
+### Data Lake Architecture
+```
+Raw Data (NATS Streams)
+    |
+    v (ETL Process)
+Iceberg Tables (MinIO S3)
+    |
+    v (SQL Analytics)
+Trino Query Engine
+    |
+    v (Visualization)
+Grafana Dashboards
 ```
 
 ### Hybrid GitOps
@@ -238,6 +299,9 @@ Kubernetes Resources
 - **Flux**: Built-in reconciliation monitoring
 - **Longhorn**: Web UI for storage monitoring
 - **MinIO**: Built-in metrics endpoint
+- **Trino**: JMX metrics exported to Prometheus
+- **NATS**: Built-in metrics endpoint and Prometheus exporter
+- **Iceberg REST Catalog**: Application metrics and health checks
 
 ### Recommended Additions
 - **Loki**: Log aggregation
@@ -298,8 +362,15 @@ Kubernetes Resources
 
 ## Conclusion
 
-This architecture provides a robust foundation for homelab operations with a hybrid GitOps approach that balances automation with operational flexibility. The combination of Flux for infrastructure management and Helmfile for complex applications ensures reliable deployments while maintaining the benefits of GitOps practices.
+This architecture provides a comprehensive data engineering platform for homelab operations, combining traditional infrastructure management with modern analytics capabilities. The hybrid GitOps approach balances automation with operational flexibility, while the integrated analytics stack enables end-to-end data processing from IoT ingestion to visualization.
 
-The single-node design is appropriate for homelab use cases while providing a foundation for future expansion to multi-node configurations as requirements grow.
+**Key Capabilities:**
+- **Foundation**: Robust storage (Longhorn) and object storage (MinIO) with GitOps management
+- **Networking**: MetalLB LoadBalancer services with HAProxy ingress for external access
+- **Analytics**: Complete data lake architecture with Trino SQL engine and Iceberg ACID tables
+- **Messaging**: High-performance NATS + JetStream for IoT data streams and event processing
+- **Observability**: Comprehensive monitoring with Prometheus, Grafana, and integrated metrics
+
+The single-node design is appropriate for homelab use cases while providing enterprise-grade patterns that can scale to multi-node configurations as requirements grow. The architecture supports modern data engineering workflows including stream processing, data lake analytics, and real-time monitoring.
 - **Network**: Router/switch updates
 - **Major Upgrades**: Kubernetes version jumps
