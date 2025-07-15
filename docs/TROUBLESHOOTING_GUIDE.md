@@ -190,7 +190,7 @@ kubectl delete namespace metallb-system
 flux reconcile kustomization flux-system
 ```
 
-## 🔍 Diagnostic Commands
+## Diagnostic Commands
 
 ### System Overview
 ```bash
@@ -231,7 +231,7 @@ kubectl get pods -n flux-system
 flux logs --since=1h
 ```
 
-## 📋 Maintenance Checklist
+## Maintenance Checklist
 
 ### Before Making Changes
 - [ ] Check current system status: `flux get all`
