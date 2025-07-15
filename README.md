@@ -49,6 +49,26 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 - **Clear Separation**: Infrastructure foundation vs. application services
 - **Operational Safety**: Critical storage protected from accidental GitOps changes
 
+### Resource Conservation Strategy
+
+**Application services can be scaled to zero when not in use to conserve homelab resources:**
+
+**Scalable Services (with memory savings):**
+- **ClickHouse**: ~2Gi memory savings when scaled down
+- **Trino**: ~10Gi memory savings (coordinator + worker)
+- **NATS**: ~512Mi memory savings
+- **Monitoring**: ~2.5Gi memory savings (Prometheus + Grafana)
+
+**Foundation Services (keep running):**
+- **Longhorn CSI**: Required for all persistent storage
+- **MinIO**: Required for object storage and data lake
+- **MetalLB**: Required for LoadBalancer services
+- **HAProxy**: Required for ingress access
+
+**Total Potential Savings**: ~15Gi memory when all application services are scaled down
+
+See [Resource Management Guide](docs/RESOURCE_MANAGEMENT.md) for detailed scaling procedures and automation scripts.
+
 ## Repository Structure
 
 ```
@@ -260,6 +280,7 @@ kubectl get tenant -n minio-tenant
 - **[Trino Guide](docs/TRINO_GUIDE.md)** - Analytics engine and Iceberg data lake usage
 - **[NATS Guide](docs/NATS_GUIDE.md)** - Messaging system and JetStream for IoT data streams
 - **[ClickHouse Guide](docs/CLICKHOUSE_GUIDE.md)** - Real-time analytics database for IoT data processing
+- **[Resource Management Guide](docs/RESOURCE_MANAGEMENT.md)** - Scaling services to zero for resource conservation
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)** - Problem diagnosis and fixes
 
 ### Application Examples

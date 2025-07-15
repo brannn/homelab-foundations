@@ -441,6 +441,180 @@ Current configuration optimized for homelab:
    # Flux will recreate from Git
    ```
 
+## Resource Management
+
+### Scaling ClickHouse to Zero (Resource Conservation)
+
+For homelab environments, you may want to scale down ClickHouse when not in use to conserve CPU and memory resources.
+
+#### **Method 1: Scale StatefulSet to Zero**
+```bash
+# Scale down ClickHouse to zero replicas
+kubectl scale statefulset chi-homelab-clickhouse-homelab-cluster-0-0 --replicas=0 -n clickhouse
+
+# Verify scaling
+kubectl get pods -n clickhouse
+
+# Scale back up when needed
+kubectl scale statefulset chi-homelab-clickhouse-homelab-cluster-0-0 --replicas=1 -n clickhouse
+
+# Wait for pod to be ready
+kubectl wait --for=condition=ready pod -l clickhouse.altinity.com/chi=homelab-clickhouse -n clickhouse --timeout=300s
+```
+
+#### **Method 2: Suspend ClickHouseInstallation**
+```bash
+# Suspend the ClickHouse installation (stops all pods)
+kubectl patch clickhouseinstallation homelab-clickhouse -n clickhouse --type='merge' -p='{"spec":{"stop":"yes"}}'
+
+# Check status
+kubectl get clickhouseinstallations -n clickhouse
+
+# Resume when needed
+kubectl patch clickhouseinstallation homelab-clickhouse -n clickhouse --type='merge' -p='{"spec":{"stop":"no"}}'
+```
+
+#### **Method 3: Temporary Flux Suspension**
+```bash
+# Suspend Flux management (prevents automatic restart)
+kubectl patch helmrelease clickhouse -n clickhouse --type='merge' -p='{"spec":{"suspend":true}}'
+
+# Scale down
+kubectl scale statefulset chi-homelab-clickhouse-homelab-cluster-0-0 --replicas=0 -n clickhouse
+
+# Resume Flux management when ready to scale up
+kubectl patch helmrelease clickhouse -n clickhouse --type='merge' -p='{"spec":{"suspend":false}}'
+```
+
+### Scaling Other Homelab Services
+
+#### **NATS (Messaging System)**
+```bash
+# Scale down NATS
+kubectl scale statefulset nats --replicas=0 -n nats
+
+# Scale up NATS
+kubectl scale statefulset nats --replicas=1 -n nats
+```
+
+#### **Trino (Analytics Engine)**
+```bash
+# Scale down Trino coordinator and workers
+kubectl scale deployment trino-coordinator --replicas=0 -n iceberg-system
+kubectl scale deployment trino-worker --replicas=0 -n iceberg-system
+
+# Scale up Trino
+kubectl scale deployment trino-coordinator --replicas=1 -n iceberg-system
+kubectl scale deployment trino-worker --replicas=1 -n iceberg-system
+```
+
+#### **Monitoring Stack**
+```bash
+# Scale down Grafana (keep Prometheus for metrics collection)
+kubectl scale deployment grafana --replicas=0 -n monitoring
+
+# Scale down Prometheus (if not needed)
+kubectl scale statefulset prometheus-kube-prometheus-stack-prometheus --replicas=0 -n monitoring
+
+# Scale up when needed
+kubectl scale deployment grafana --replicas=1 -n monitoring
+kubectl scale statefulset prometheus-kube-prometheus-stack-prometheus --replicas=1 -n monitoring
+```
+
+### Automated Scaling Scripts
+
+#### **ClickHouse Scale Down Script**
+```bash
+#!/bin/bash
+# save as: scale-clickhouse-down.sh
+
+echo "Scaling down ClickHouse..."
+kubectl scale statefulset chi-homelab-clickhouse-homelab-cluster-0-0 --replicas=0 -n clickhouse
+
+echo "Waiting for pods to terminate..."
+kubectl wait --for=delete pod -l clickhouse.altinity.com/chi=homelab-clickhouse -n clickhouse --timeout=120s
+
+echo "ClickHouse scaled down. Resources freed:"
+kubectl top nodes
+```
+
+#### **ClickHouse Scale Up Script**
+```bash
+#!/bin/bash
+# save as: scale-clickhouse-up.sh
+
+echo "Scaling up ClickHouse..."
+kubectl scale statefulset chi-homelab-clickhouse-homelab-cluster-0-0 --replicas=1 -n clickhouse
+
+echo "Waiting for ClickHouse to be ready..."
+kubectl wait --for=condition=ready pod -l clickhouse.altinity.com/chi=homelab-clickhouse -n clickhouse --timeout=300s
+
+echo "ClickHouse is ready!"
+echo "Web UI: http://10.0.0.248:8123/play"
+echo "Dashboard: http://10.0.0.248:8123/dashboard"
+
+# Test connectivity
+kubectl exec -n clickhouse chi-homelab-clickhouse-homelab-cluster-0-0-0 -- clickhouse-client --query "SELECT 'ClickHouse is ready!' as status"
+```
+
+### Resource Monitoring
+
+#### **Check Resource Usage**
+```bash
+# Check node resource usage
+kubectl top nodes
+
+# Check pod resource usage
+kubectl top pods -n clickhouse
+kubectl top pods -n iceberg-system
+kubectl top pods -n nats
+kubectl top pods -n monitoring
+
+# Check resource requests/limits
+kubectl describe nodes | grep -A 5 "Allocated resources"
+```
+
+#### **Identify Resource-Heavy Services**
+```bash
+# Find pods using most CPU
+kubectl top pods --all-namespaces --sort-by=cpu
+
+# Find pods using most memory
+kubectl top pods --all-namespaces --sort-by=memory
+
+# Check persistent volume usage
+kubectl get pvc --all-namespaces
+```
+
+### Considerations
+
+#### **Data Persistence**
+- **ClickHouse**: Data persists in Longhorn volumes when scaled to zero
+- **NATS**: JetStream data persists in persistent volumes
+- **Trino**: Stateless - no data loss when scaled down
+- **Monitoring**: Prometheus data persists, Grafana dashboards persist
+
+#### **Startup Times**
+- **ClickHouse**: ~30-60 seconds to fully initialize
+- **NATS**: ~10-20 seconds
+- **Trino**: ~20-30 seconds
+- **Monitoring**: ~30-60 seconds for full stack
+
+#### **Dependencies**
+- Scale up **NATS** before services that depend on messaging
+- Scale up **ClickHouse** before analytics workloads
+- Keep **Prometheus** running if you want continuous monitoring
+- **Longhorn** and **MinIO** should remain running (foundation services)
+
+### Best Practices
+
+1. **Scale down in reverse dependency order**: Analytics → Messaging → Storage
+2. **Scale up in dependency order**: Storage → Messaging → Analytics
+3. **Keep foundation services running**: Longhorn, MinIO, MetalLB, HAProxy
+4. **Monitor resource usage** before and after scaling
+5. **Test connectivity** after scaling up
+6. **Document your scaling procedures** for your specific use cases
+
 ## Security Considerations
 
 ### Current Configuration
