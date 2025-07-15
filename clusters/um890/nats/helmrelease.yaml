@@ -74,11 +74,14 @@ spec:
         monitor:
           enabled: true
 
-    # Pod template configuration
-    podTemplate:
+    # StatefulSet configuration
+    statefulSet:
       merge:
-        securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
-          fsGroup: 1000
-          fsGroupChangePolicy: "OnRootMismatch"
+        spec:
+          template:
+            spec:
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                fsGroupChangePolicy: "OnRootMismatch"
