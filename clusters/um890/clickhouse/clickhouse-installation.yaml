@@ -19,8 +19,7 @@ spec:
       max_connections: 1024
       keep_alive_timeout: 3
       max_concurrent_queries: 100
-      max_memory_usage: 1073741824  # 1GB
-      
+
       # Enable metrics for Prometheus
       prometheus/endpoint: "/metrics"
       prometheus/port: 9363
