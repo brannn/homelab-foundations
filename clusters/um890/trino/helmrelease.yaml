@@ -33,7 +33,7 @@ spec:
     # Coordinator configuration
     coordinator:
       jvm:
-        maxHeapSize: "3GB"  # Increased for better performance
+        maxHeapSize: "3g"  # Increased for better performance
       config:
         query:
           maxMemoryPerNode: "2GB"  # Increased with more headroom
@@ -61,7 +61,7 @@ spec:
     # Worker configuration
     worker:
       jvm:
-        maxHeapSize: "5GB"  # Increased for better performance
+        maxHeapSize: "5g"  # Increased for better performance
       config:
         query:
           maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
