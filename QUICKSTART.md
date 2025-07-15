@@ -7,7 +7,7 @@
 
 ## Overview
 
-This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, comprehensive monitoring with Prometheus + Grafana, analytics with Trino + Iceberg, and IoT messaging with NATS + JetStream.
+This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, comprehensive monitoring with Prometheus + Grafana, analytics with Trino + Iceberg, real-time analytics with ClickHouse, and IoT messaging with NATS + JetStream.
 
 **Architecture**: Core storage components are managed via Helmfile for high availability, while other services use GitOps (Flux) for automated deployment and management.
 
@@ -196,6 +196,28 @@ kubectl exec -n nats nats-box-XXXXX -- nats --server nats://nats:4222 stream ls
 kubectl exec -n nats nats-box-XXXXX -- nats --server nats://nats:4222 stream add iot-sensors --subjects "sensors.>" --storage file --retention limits --max-age=24h --replicas=1 --defaults
 ```
 
+### 4.7 Access ClickHouse Analytics Database
+1. Find the ClickHouse IP: `kubectl get svc clickhouse-lb -n clickhouse`
+2. Open browser to: `http://CLICKHOUSE_IP:8123/play` (SQL editor)
+3. Or access dashboard: `http://CLICKHOUSE_IP:8123/dashboard` (monitoring)
+4. Test with a simple query:
+```sql
+-- In the Play interface, try:
+SELECT version(), uptime();
+
+-- Create a test database
+CREATE DATABASE IF NOT EXISTS homelab_test;
+
+-- Create a sample IoT table
+CREATE TABLE homelab_test.sensor_data (
+    timestamp DateTime,
+    sensor_id String,
+    temperature Float32,
+    humidity Float32
+) ENGINE = MergeTree()
+ORDER BY (sensor_id, timestamp);
+```
+
 ## Step 5: Test GitOps Workflow
 
 ### 5.1 Make a Change
@@ -229,6 +251,7 @@ flux get all
 - **MinIO** providing S3-compatible object storage
 - **Prometheus + Grafana** providing comprehensive monitoring
 - **Trino + Iceberg** providing analytics engine and data lake capabilities
+- **ClickHouse** providing real-time analytics database for IoT data processing
 - **NATS + JetStream** providing high-performance messaging for IoT data streams
 
 ### GitOps Workflow
@@ -243,6 +266,8 @@ flux get all
 - **Longhorn UI**: Storage management interface
 - **Trino Web UI**: SQL query interface for analytics (no authentication)
 - **Trino CLI**: Command-line SQL interface for advanced queries
+- **ClickHouse Play**: Interactive SQL editor for real-time analytics
+- **ClickHouse Dashboard**: System monitoring and performance metrics
 - **NATS**: High-performance messaging system for IoT data streams
 - **Kubernetes API**: Full cluster management via kubectl
 
