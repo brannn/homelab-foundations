@@ -60,12 +60,14 @@ homelab-foundations/
 │       ├── cert-manager/         # Certificate management
 │       ├── haproxy-ingress/      # HAProxy Ingress Controller
 │       ├── monitoring/           # Prometheus + Grafana stack
+│       │   ├── prometheus/       # Prometheus monitoring
+│       │   ├── grafana/          # Grafana dashboards
+│       │   ├── node-exporter/    # Node metrics collection
+│       │   ├── kube-state-metrics/ # Kubernetes metrics
+│       │   └── kustomization.yaml # Monitoring kustomization
 │       ├── trino/                # Trino analytics engine + Iceberg REST catalog
-│       │   ├── helmrelease.yaml  # Trino Helm deployment
 │       │   ├── iceberg-rest-catalog.yaml  # Iceberg REST catalog service
-│       │   ├── services.yaml     # LoadBalancer services
-│       │   ├── ingress.yaml      # HAProxy ingress configuration
-│       │   └── kustomization.yaml # Trino kustomization
+│       │   └── [other Trino files...]
 │       ├── nats/                 # NATS messaging system with JetStream
 │       │   ├── helmrelease.yaml  # NATS + JetStream Helm deployment
 │       │   └── kustomization.yaml # NATS kustomization
@@ -73,13 +75,7 @@ homelab-foundations/
 ├── infrastructure/
 │   └── helm-repositories/        # Helm repository definitions
 ├── longhorn/                     # Longhorn CSI (Foundation - Helmfile managed)
-│   ├── helmfile.yaml            # Longhorn deployment configuration
-│   ├── longhorn-values.yaml     # Longhorn Helm values
-│   └── README.md                # Longhorn documentation
 ├── minio/                        # MinIO Object Storage (Foundation - Helmfile managed)
-│   ├── helmfile.yaml            # MinIO operator + tenant deployment
-│   ├── tenant-values.yaml       # MinIO tenant configuration
-│   └── README.md                 # MinIO-specific documentation
 ├── docs/                         # Documentation
 └── README.md                     # This file
 ```
