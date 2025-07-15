@@ -8,5 +8,6 @@ resources:
   - haproxy-ingress
   - monitoring
   - trino
+  - nats
   # Longhorn managed by Helmfile (see longhorn/ directory)
   # MinIO managed by Helmfile (see minio/ directory)

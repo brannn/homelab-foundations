@@ -40,3 +40,10 @@ metadata:
   name: iceberg-system
   labels:
     name: iceberg-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nats
+  labels:
+    name: nats
