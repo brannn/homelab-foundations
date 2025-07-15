@@ -31,22 +31,38 @@ ClickHouse is a high-performance columnar database management system (DBMS) opti
 - **Hostname**: clickhouse.homelab.local
 - **Protocol**: HTTP/HTTPS
 - **TLS**: Self-signed certificates via cert-manager
+- **Ingress IP**: Assigned by HAProxy controller (check with `kubectl get ingress -n clickhouse`)
 - **Web UI**: /play (SQL editor), /dashboard (monitoring)
 - **HTTP API**: All standard ClickHouse HTTP endpoints
+- **Authentication**: None required (homelab configuration)
 
 ### LoadBalancer Service (MetalLB)
 - **IP Address**: 10.0.0.248
 - **HTTP Interface**: Port 8123
 - **Native Protocol**: Port 9000 (for native ClickHouse clients)
 - **Metrics**: Port 9363 (for Prometheus)
+- **Authentication**: None required (homelab configuration)
+- **Status**: Verified working - web interfaces accessible
 
 ### Internal Access
 ```bash
 # From within cluster
 kubectl exec -n clickhouse chi-homelab-clickhouse-homelab-cluster-0-0-0 -- clickhouse-client
 
-# Port forwarding for external access
+# Port forwarding (not recommended - use LoadBalancer or ingress instead)
 kubectl port-forward -n clickhouse chi-homelab-clickhouse-homelab-cluster-0-0-0 8123:8123
+```
+
+### Checking Ingress Status
+```bash
+# Check ingress configuration and IP assignment
+kubectl get ingress -n clickhouse
+
+# View detailed ingress information
+kubectl describe ingress clickhouse-http -n clickhouse
+
+# Check HAProxy ingress controller logs if needed
+kubectl logs -n haproxy-controller deployment/haproxy-ingress
 ```
 
 ## Basic Usage
@@ -85,7 +101,7 @@ ClickHouse includes several built-in web interfaces:
 ```bash
 # Access via HAProxy ingress (recommended)
 https://clickhouse.homelab.local/play
-# or direct LoadBalancer access
+# or direct LoadBalancer access (verified working)
 http://10.0.0.248:8123/play
 ```
 
@@ -93,9 +109,16 @@ http://10.0.0.248:8123/play
 ```bash
 # Access via HAProxy ingress (recommended)
 https://clickhouse.homelab.local/dashboard
-# or direct LoadBalancer access
+# or direct LoadBalancer access (verified working)
 http://10.0.0.248:8123/dashboard
 ```
+
+**Features:**
+- **No Authentication Required**: Direct access for homelab convenience
+- **Real-time Interface**: Both interfaces update dynamically
+- **Schema Browser**: Explore databases and tables in Play interface
+- **Query History**: Previous queries saved in browser session
+- **Performance Metrics**: Dashboard shows system performance and query statistics
 
 #### 2. Tabix (Community Web UI)
 Popular web-based SQL client for ClickHouse:
@@ -256,6 +279,28 @@ Current configuration optimized for homelab:
    kubectl describe pvc volume-template-chi-homelab-clickhouse-homelab-cluster-0-0-0 -n clickhouse
    ```
 
+4. **Web UI Not Loading**
+   ```bash
+   # Check LoadBalancer service endpoints
+   kubectl get endpoints clickhouse-lb -n clickhouse
+
+   # Test direct HTTP access
+   curl "http://10.0.0.248:8123/?query=SELECT%201"
+
+   # Check ingress status
+   kubectl get ingress -n clickhouse
+   kubectl describe ingress clickhouse-http -n clickhouse
+   ```
+
+5. **Authentication Issues**
+   ```bash
+   # Check user configuration
+   kubectl get configmap chi-homelab-clickhouse-common-usersd -n clickhouse -o yaml
+
+   # Test with explicit empty credentials
+   curl "http://default:@10.0.0.248:8123/?query=SELECT%201"
+   ```
+
 ### Recovery Procedures
 
 1. **Restart ClickHouse**
@@ -272,9 +317,10 @@ Current configuration optimized for homelab:
 ## Security Considerations
 
 ### Current Configuration
-- **Authentication**: None (homelab environment)
-- **Network Access**: Limited to homelab network (10.0.0.0/24)
+- **Authentication**: None required (default user with empty password)
+- **Network Access**: Open access for homelab convenience (configured for ::/0)
 - **TLS**: Available via HAProxy ingress with self-signed certificates
+- **Network Isolation**: Protected by homelab network boundaries
 
 ### Production Recommendations
 - Enable user authentication
