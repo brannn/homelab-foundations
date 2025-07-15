@@ -1,0 +1,92 @@
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: homelab-clickhouse
+  namespace: clickhouse
+spec:
+  configuration:
+    clusters:
+      - name: homelab-cluster
+        templates:
+          podTemplate: pod-template
+          volumeClaimTemplate: volume-template
+        layout:
+          shardsCount: 1
+          replicasCount: 1
+    
+    settings:
+      # Performance settings for homelab
+      max_connections: 1024
+      keep_alive_timeout: 3
+      max_concurrent_queries: 100
+      max_memory_usage: 1073741824  # 1GB
+      
+      # Enable metrics for Prometheus
+      prometheus/endpoint: "/metrics"
+      prometheus/port: 9363
+      prometheus/asynchronous_metrics: true
+      prometheus/events: true
+      prometheus/errors: true
+      
+    users:
+      default/password: ""  # No password for homelab
+      default/networks/ip: "10.0.0.0/24"  # Allow access from homelab network
+      default/profile: default
+      default/quota: default
+      
+    profiles:
+      default/max_memory_usage: 1073741824  # 1GB
+      default/use_uncompressed_cache: 0
+      default/load_balancing: random
+      
+    quotas:
+      default/interval/duration: 3600
+      default/interval/queries: 0
+      default/interval/errors: 0
+      default/interval/result_rows: 0
+      default/interval/read_rows: 0
+      default/interval/execution_time: 0
+
+  templates:
+    podTemplates:
+      - name: pod-template
+        spec:
+          containers:
+            - name: clickhouse
+              image: clickhouse/clickhouse-server:25.6.3.116-stable
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: 2
+                  memory: 2Gi
+              ports:
+                - containerPort: 8123
+                  name: http
+                - containerPort: 9000
+                  name: native
+                - containerPort: 9363
+                  name: metrics
+              securityContext:
+                runAsUser: 101
+                runAsGroup: 101
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+          securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+            fsGroup: 101
+            fsGroupChangePolicy: "OnRootMismatch"
+
+    volumeClaimTemplates:
+      - name: volume-template
+        spec:
+          accessModes: 
+            - ReadWriteOnce
+          storageClassName: longhorn
+          resources:
+            requests:
+              storage: 20Gi

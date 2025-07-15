@@ -3,9 +3,11 @@ kind: Kustomization
 resources:
   - longhorn.yaml
   - cert-manager.yaml
+  - clickhouse.yaml
   - prometheus-community.yaml
   - grafana.yaml
   - haproxy-tech.yaml
   - metallb.yaml
+  - nats.yaml
   - trino.yaml
   # MinIO charts managed by Helmfile

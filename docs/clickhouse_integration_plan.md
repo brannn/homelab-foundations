@@ -139,16 +139,5 @@ spec:
   ```bash
   kubectl get pods -n clickhouse
   ```
-
-- Test port-forwarding:
-  ```bash
-  kubectl port-forward svc/clickhouse-clickhouse 8123 -n clickhouse
-  ```
-
-- Connect via client:
-  ```bash
-  clickhouse-client --host 127.0.0.1
-  ```
-
-- Or expose through Traefik Ingress as needed.
+- Expose through HAProxy Ingress as LoadBalancer type
 

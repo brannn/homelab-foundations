@@ -1,0 +1,150 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: clickhouse
+  namespace: clickhouse
+spec:
+  releaseName: clickhouse
+  chart:
+    spec:
+      chart: altinity-clickhouse-operator
+      version: "0.25.0"
+      sourceRef:
+        kind: HelmRepository
+        name: clickhouse
+        namespace: flux-system
+  interval: 10m
+  values:
+    # ClickHouse Operator configuration
+    operator:
+      image:
+        repository: altinity/clickhouse-operator
+        tag: "0.25.0"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+    # Metrics exporter configuration
+    metrics:
+      image:
+        repository: altinity/metrics-exporter
+        tag: "0.25.0"
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+
+    # ClickHouse Installation configuration
+    clickhouse:
+      # ClickHouse cluster configuration
+      configuration:
+        clusters:
+          - name: homelab-cluster
+            templates:
+              podTemplate: pod-template
+              volumeClaimTemplate: volume-template
+            layout:
+              shardsCount: 1
+              replicasCount: 1
+        
+        # ClickHouse settings
+        settings:
+          # Performance settings for homelab
+          max_connections: 1024
+          keep_alive_timeout: 3
+          max_concurrent_queries: 100
+          max_memory_usage: 1073741824  # 1GB
+          
+          # Monitoring and metrics
+          prometheus:
+            endpoint: "/metrics"
+            port: 9363
+            asynchronous_metrics: true
+            events: true
+            errors: true
+            
+        # User configuration
+        users:
+          default:
+            password: ""  # No password for homelab
+            networks:
+              ip:
+                - "10.0.0.0/24"  # Allow access from homelab network
+            profile: default
+            quota: default
+            
+        # Profiles configuration
+        profiles:
+          default:
+            max_memory_usage: 1073741824  # 1GB
+            use_uncompressed_cache: 0
+            load_balancing: random
+            
+        # Quotas configuration  
+        quotas:
+          default:
+            interval:
+              duration: 3600
+              queries: 0
+              errors: 0
+              result_rows: 0
+              read_rows: 0
+              execution_time: 0
+
+      # Pod template configuration
+      templates:
+        podTemplates:
+          - name: pod-template
+            spec:
+              containers:
+                - name: clickhouse
+                  image: clickhouse/clickhouse-server:25.6.3.116-stable
+                  resources:
+                    requests:
+                      cpu: 500m
+                      memory: 1Gi
+                    limits:
+                      cpu: 2
+                      memory: 2Gi
+                  ports:
+                    - containerPort: 8123
+                      name: http
+                    - containerPort: 9000
+                      name: native
+                    - containerPort: 9363
+                      name: metrics
+                  securityContext:
+                    runAsUser: 101
+                    runAsGroup: 101
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
+                  env:
+                    - name: CLICKHOUSE_DB
+                      value: "default"
+                    - name: CLICKHOUSE_USER
+                      value: "default"
+              securityContext:
+                runAsUser: 101
+                runAsGroup: 101
+                fsGroup: 101
+                fsGroupChangePolicy: "OnRootMismatch"
+
+        # Volume claim template
+        volumeClaimTemplates:
+          - name: volume-template
+            spec:
+              accessModes: 
+                - ReadWriteOnce
+              storageClassName: longhorn
+              resources:
+                requests:
+                  storage: 20Gi
