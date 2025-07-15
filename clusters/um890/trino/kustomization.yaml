@@ -13,5 +13,4 @@ resources:
   - services.yaml
   - ingress.yaml
 
-commonLabels:
-  app.kubernetes.io/part-of: homelab-foundations
+# commonLabels removed to avoid conflicts with Helm-managed pod labels
