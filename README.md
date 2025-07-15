@@ -22,6 +22,8 @@ This repository provides a complete GitOps foundation for single-node Kubernetes
 - **Certificates**: cert-manager for TLS certificate management - *Chart version >=1.13.0*
 - **Ingress**: HAProxy Ingress Controller for HTTP/HTTPS routing - *Chart version >=1.44.0*
 - **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards - *kube-prometheus-stack v61.3.2, Grafana v8.4.2*
+- **Analytics Engine**: Trino distributed SQL query engine - *Chart version 1.39.1, Trino v476*
+- **Data Lake**: Apache Iceberg REST Catalog for ACID transactions and schema evolution - *Tabular REST Catalog v0.1.0*
 
 ## Architecture Decisions
 
@@ -138,6 +140,25 @@ homelab-foundations/
 - **Dashboards**: Pre-configured for Kubernetes, nodes, and Longhorn
 - **Note**: Dashboard compatibility varies by Kubernetes distribution; customization may be required
 
+### Trino Analytics Engine (Flux-managed)
+- **Namespace**: iceberg-system
+- **Architecture**: 1 coordinator (4Gi RAM) + 1 worker (6Gi RAM)
+- **Total Memory**: 10Gi cluster memory allocation
+- **Catalogs**: Iceberg (REST), Memory, TPC-H, TPC-DS
+- **Web UI**: http://10.0.0.246:8080 (no authentication required)
+- **Authentication**: None (open access for homelab environment)
+- **Monitoring**: JMX metrics exported to Prometheus
+- **Storage Integration**: MinIO S3-compatible backend via Iceberg REST catalog
+
+### Iceberg REST Catalog (Flux-managed)
+- **Namespace**: iceberg-system
+- **Purpose**: ACID transactions, schema evolution, time travel queries
+- **Memory**: 512Mi allocation
+- **API Endpoint**: http://10.0.0.247:8181
+- **Storage Backend**: MinIO S3 (iceberg bucket)
+- **Credentials**: Kubernetes secret integration with MinIO
+- **Features**: Table metadata management, schema versioning, partition evolution
+
 ## Management
 
 ### Updating Configurations
@@ -211,6 +232,7 @@ kubectl get tenant -n minio-tenant
 - **[Quick Reference](docs/QUICK_REFERENCE.md)** - Essential commands and URLs
 - **[HAProxy Ingress Guide](docs/HAPROXY_INGRESS.md)** - HAProxy ingress controller usage
 - **[Monitoring Guide](docs/MONITORING.md)** - Prometheus + Grafana stack details
+- **[Trino Guide](docs/TRINO_GUIDE.md)** - Analytics engine and Iceberg data lake usage
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)** - Problem diagnosis and fixes
 
 ### Application Examples
@@ -229,6 +251,8 @@ kubectl get tenant -n minio-tenant
 - [Helmfile Documentation](https://helmfile.readthedocs.io/)
 - [Longhorn Documentation](https://longhorn.io/docs/)
 - [MetalLB Documentation](https://metallb.universe.tf/)
+- [Trino Documentation](https://trino.io/docs/current/)
+- [Apache Iceberg Documentation](https://iceberg.apache.org/docs/latest/)
 
 ## Contributing
 

@@ -24,6 +24,8 @@ kubectl cluster-info
 - **MinIO S3 API**: https://10.0.0.241:443
 - **Longhorn UI**: http://10.0.0.243 (via LoadBalancer)
 - **Traefik (K3s)**: http://10.0.0.240 (default K3s ingress)
+- **Trino Web UI**: http://10.0.0.246:8080 (no authentication)
+- **Iceberg REST API**: http://10.0.0.247:8181 (catalog management)
 
 ### Hybrid GitOps Workflow
 
@@ -74,6 +76,50 @@ kubectl get clusterissuers
 # HAProxy ingress status
 kubectl get pods -n haproxy-controller
 kubectl get svc -n haproxy-controller
+```
+
+## Trino Analytics
+
+### Quick Access
+```bash
+# Download Trino CLI
+curl -o trino https://repo1.maven.org/maven2/io/trino/trino-cli/476/trino-cli-476-executable.jar
+chmod +x trino
+
+# Connect to cluster
+./trino --server http://10.0.0.246:8080 --user admin
+```
+
+### Essential Queries
+```sql
+-- Show catalogs and schemas
+SHOW CATALOGS;
+SHOW SCHEMAS FROM iceberg;
+
+-- Create schema
+CREATE SCHEMA iceberg.analytics WITH (location = 's3a://iceberg/analytics/');
+
+-- Create table
+CREATE TABLE iceberg.analytics.example (
+    id BIGINT,
+    name VARCHAR,
+    created_at TIMESTAMP(6) WITH TIME ZONE
+) WITH (format = 'PARQUET', partitioning = ARRAY['date(created_at)']);
+
+-- Query data
+SELECT * FROM iceberg.analytics.example;
+```
+
+### API Access
+```bash
+# Check cluster status
+curl -H "X-Trino-User: admin" http://10.0.0.246:8080/v1/info
+
+# Submit query
+curl -X POST http://10.0.0.246:8080/v1/statement \
+  -H "Content-Type: application/json" \
+  -H "X-Trino-User: admin" \
+  -d '{"query":"SHOW CATALOGS"}'
 ```
 
 ## Common Fixes
