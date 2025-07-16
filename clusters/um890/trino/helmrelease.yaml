@@ -146,7 +146,6 @@ spec:
         s3.endpoint=http://minio-tenant-hl.minio-tenant.svc.cluster.local:9000
         s3.region=us-west-1
         s3.path-style-access=true
-        s3.ssl.enabled=false
         s3.aws-access-key=${ENV:MINIO_ACCESS_KEY}
         s3.aws-secret-key=${ENV:MINIO_SECRET_KEY}
       
