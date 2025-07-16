@@ -41,6 +41,8 @@ spec:
     service:
       type: LoadBalancer
       port: 3000
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: "10.0.0.243"  # Fixed IP for Grafana
 
     # Data sources
     datasources:

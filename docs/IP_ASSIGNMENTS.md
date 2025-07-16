@@ -7,7 +7,22 @@
 
 ## Overview
 
-This document defines the permanent IP address assignments for all LoadBalancer services in the homelab-foundations environment using MetalLB.
+This document defines the permanent IP address assignments for all services in the homelab-foundations environment. Every service has ONE permanent address that never changes, regardless of reboots or redeployments.
+
+## PERMANENT SERVICE ADDRESSES
+
+**These addresses NEVER change:**
+
+- **10.0.0.240**: MinIO S3 API (https://10.0.0.240:443)
+- **10.0.0.241**: MinIO Console (https://10.0.0.241:9443)
+- **10.0.0.242**: Longhorn UI (http://10.0.0.242:80)
+- **10.0.0.243**: Grafana Dashboard (http://10.0.0.243:3000)
+- **10.0.0.244**: Traefik Ingress (http://10.0.0.244:80)
+- **10.0.0.245**: HAProxy Ingress (http://10.0.0.245:80)
+- **10.0.0.246**: Trino Query Engine (http://10.0.0.246:8080)
+- **10.0.0.247**: Iceberg REST Catalog (http://10.0.0.247:8181)
+- **10.0.0.248**: ClickHouse Database (http://10.0.0.248:8123)
+- **10.0.0.249-250**: Reserved for future services
 
 ## MetalLB Configuration
 
