@@ -165,6 +165,8 @@ spec:
       - s3.endpoint=https://10.0.0.241:443
       - s3.path-style-access=true
       - s3.ssl.enabled=true
+      - s3.access-key=${ENV:MINIO_ACCESS_KEY}
+      - s3.secret-key=${ENV:MINIO_SECRET_KEY}
     
     # Node properties
     additionalNodeProperties:
