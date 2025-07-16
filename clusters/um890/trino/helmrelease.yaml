@@ -175,16 +175,12 @@ spec:
     # S3 filesystem configuration
     additionalConfigFiles:
       filesystem.properties: |
-        s3.aws-access-key=${ENV:MINIO_ACCESS_KEY}
-        s3.aws-secret-key=${ENV:MINIO_SECRET_KEY}
-        s3.endpoint=https://10.0.0.241:443
-        s3.path-style-access=true
-        s3.ssl.enabled=true
-        s3a.aws-access-key=${ENV:MINIO_ACCESS_KEY}
-        s3a.aws-secret-key=${ENV:MINIO_SECRET_KEY}
-        s3a.endpoint=https://10.0.0.241:443
-        s3a.path-style-access=true
-        s3a.ssl.enabled=true
+        fs.s3a.access.key=${ENV:MINIO_ACCESS_KEY}
+        fs.s3a.secret.key=${ENV:MINIO_SECRET_KEY}
+        fs.s3a.endpoint=https://10.0.0.241:443
+        fs.s3a.path.style.access=true
+        fs.s3a.connection.ssl.enabled=true
+        fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
 
     # Environment variables for MinIO credentials
     env:
