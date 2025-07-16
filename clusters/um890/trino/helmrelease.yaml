@@ -180,6 +180,11 @@ spec:
         s3.endpoint=https://10.0.0.241:443
         s3.path-style-access=true
         s3.ssl.enabled=true
+        s3a.aws-access-key=${ENV:MINIO_ACCESS_KEY}
+        s3a.aws-secret-key=${ENV:MINIO_SECRET_KEY}
+        s3a.endpoint=https://10.0.0.241:443
+        s3a.path-style-access=true
+        s3a.ssl.enabled=true
 
     # Environment variables for MinIO credentials
     env:
