@@ -162,7 +162,6 @@ spec:
     additionalConfigProperties:
       - internal-communication.shared-secret=trino-homelab-secret
       - http-server.process-forwarded=true
-      - http-server.authentication.type=PASSWORD
     
     # Node properties
     additionalNodeProperties:
@@ -172,12 +171,6 @@ spec:
     additionalLogProperties:
       - io.trino=INFO
       - io.airlift=INFO
-
-    # Authentication configuration
-    auth:
-      passwordAuth: |
-        password-authenticator.name=file
-        file.password-file=/etc/trino/auth/password.db
 
     # Environment variables for MinIO credentials
     env:
@@ -191,9 +184,3 @@ spec:
           secretKeyRef:
             name: minio-credentials
             key: secret-key
-
-    # Volume mounts for authentication
-    secretMounts:
-      - name: password-auth
-        secretName: trino-password-auth
-        path: /etc/trino/auth
