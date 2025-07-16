@@ -12,5 +12,6 @@ resources:
   - iceberg-rest-catalog.yaml
   - services.yaml
   - ingress.yaml
+  - auth-secret.yaml
 
 # commonLabels removed to avoid conflicts with Helm-managed pod labels
