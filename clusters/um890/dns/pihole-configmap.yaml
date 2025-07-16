@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-custom-dns
+  namespace: dns-system
+data:
+  # Custom DNS entries for homelab services
+  # These will be automatically loaded by Pi-hole
+  02-homelab.conf: |
+    # Homelab DNS entries - all point to HAProxy ingress
+    address=/grafana.homelab.local/10.0.0.245
+    address=/clickhouse.homelab.local/10.0.0.245
+    address=/trino.homelab.local/10.0.0.245
+    address=/iceberg.homelab.local/10.0.0.245
+    address=/longhorn.homelab.local/10.0.0.245
+    address=/nats.homelab.local/10.0.0.245
+    address=/minio-console.homelab.local/10.0.0.245
+    address=/minio.homelab.local/10.0.0.245
+    
+    # Pi-hole itself
+    address=/pihole.homelab.local/10.0.0.249
