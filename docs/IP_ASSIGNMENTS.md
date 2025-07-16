@@ -22,7 +22,8 @@ This document defines the permanent IP address assignments for all services in t
 - **10.0.0.246**: Trino Query Engine (http://10.0.0.246:8080)
 - **10.0.0.247**: Iceberg REST Catalog (http://10.0.0.247:8181)
 - **10.0.0.248**: ClickHouse Database (http://10.0.0.248:8123)
-- **10.0.0.249-250**: Reserved for future services
+- **10.0.0.249**: Pi-hole DNS Server (http://10.0.0.249:80, dns://10.0.0.249:53)
+- **10.0.0.250**: Reserved for future services
 
 ## MetalLB Configuration
 
@@ -47,8 +48,11 @@ The MetalLB configuration uses dedicated pools for different service categories:
 #### **Monitoring Pool (10.0.0.243)**
 - **10.0.0.243**: Grafana Dashboard
 
-#### **Dynamic Pool (10.0.0.249-250)**
-- **10.0.0.249-250**: Reserved for future services
+#### **DNS Pool (10.0.0.249)**
+- **10.0.0.249**: Pi-hole DNS server
+
+#### **Dynamic Pool (10.0.0.250)**
+- **10.0.0.250**: Reserved for future services
 
 ## Service Assignments
 
@@ -115,6 +119,18 @@ The MetalLB configuration uses dedicated pools for different service categories:
 - **IP**: 10.0.0.243 (FIXED)
 - **Pool**: monitoring-pool
 - **Access**: http://10.0.0.243:3000
+
+### **DNS Services**
+
+#### **Pi-hole DNS Server**
+- **IP**: 10.0.0.249 (FIXED)
+- **Pool**: dns-pool
+- **DNS Service**: dns://10.0.0.249:53 (TCP/UDP)
+- **Web Interface**: http://10.0.0.249:80/admin
+- **Ingress**: http://pihole.homelab.local/admin
+- **Credentials**: admin / homelab123
+- **Purpose**: Local DNS resolution for .homelab.local domains
+- **Configuration**: `clusters/um890/dns/`
 
 ## Implementation Details
 

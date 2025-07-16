@@ -152,6 +152,7 @@ homelab-foundations/
 │   ├── metallb/              # Load balancer config
 │   ├── cert-manager/         # TLS certificate management
 │   ├── haproxy-ingress/      # HAProxy ingress controller
+│   ├── dns/                  # Pi-hole DNS server for .homelab.local resolution
 │   ├── monitoring/           # Prometheus, Grafana, Alertmanager
 │   ├── trino/                # Trino analytics engine + Iceberg REST catalog
 │   ├── nats/                 # NATS messaging system with JetStream

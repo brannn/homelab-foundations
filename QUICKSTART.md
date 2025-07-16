@@ -7,7 +7,7 @@
 
 ## Overview
 
-This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, comprehensive monitoring with Prometheus + Grafana, analytics with Trino + Iceberg, real-time analytics with ClickHouse, and IoT messaging with NATS + JetStream.
+This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, Pi-hole DNS for local hostname resolution, comprehensive monitoring with Prometheus + Grafana, analytics with Trino + Iceberg, real-time analytics with ClickHouse, and IoT messaging with NATS + JetStream.
 
 **Architecture**: Core storage components are managed via Helmfile for high availability, while other services use GitOps (Flux) for automated deployment and management.
 
@@ -248,6 +248,8 @@ flux get all
 - **MetalLB** providing LoadBalancer services
 - **Longhorn** providing persistent storage
 - **cert-manager** providing TLS certificate management
+- **HAProxy Ingress** providing application load balancing
+- **Pi-hole DNS** providing local hostname resolution for .homelab.local domains
 - **MinIO** providing S3-compatible object storage
 - **Prometheus + Grafana** providing comprehensive monitoring
 - **Trino + Iceberg** providing analytics engine and data lake capabilities
@@ -260,6 +262,7 @@ flux get all
 - **All configuration** stored in Git for version control
 
 ### Access Points
+- **Pi-hole Admin**: DNS management and ad-blocking configuration
 - **MinIO Console**: Web UI for object storage management
 - **MinIO S3 API**: S3-compatible API for applications
 - **Grafana**: Monitoring dashboards and metrics visualization

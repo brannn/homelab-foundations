@@ -81,6 +81,7 @@ homelab-foundations/
 │       ├── metallb/              # MetalLB configuration
 │       ├── cert-manager/         # Certificate management
 │       ├── haproxy-ingress/      # HAProxy Ingress Controller
+│       ├── dns/                 # Pi-hole DNS server for .homelab.local
 │       ├── monitoring/           # Prometheus + Grafana stack
 │       │   ├── prometheus/       # Prometheus monitoring
 │       │   ├── grafana/          # Grafana dashboards
@@ -277,6 +278,7 @@ kubectl get tenant -n minio-tenant
 - **[Operational Runbook](docs/OPERATIONAL_RUNBOOK.md)** - Complete operations manual
 - **[Quick Reference](docs/QUICK_REFERENCE.md)** - Essential commands and URLs
 - **[HAProxy Ingress Guide](docs/HAPROXY_INGRESS.md)** - HAProxy ingress controller usage
+- **[Pi-hole DNS Guide](docs/PIHOLE_DNS_GUIDE.md)** - Local DNS resolution for .homelab.local domains
 - **[Monitoring Guide](docs/MONITORING.md)** - Prometheus + Grafana stack details
 - **[Trino Guide](docs/TRINO_GUIDE.md)** - Analytics engine and Iceberg data lake usage
 - **[NATS Guide](docs/NATS_GUIDE.md)** - Messaging system and JetStream for IoT data streams

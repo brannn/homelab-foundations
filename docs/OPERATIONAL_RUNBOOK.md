@@ -52,9 +52,13 @@ kubectl get helmreleases -n monitoring
 
 ### Service Access
 
-**HAProxy Ingress**: http://10.0.0.244 (HTTP/HTTPS ingress controller)
+**HAProxy Ingress**: http://10.0.0.245 (HTTP/HTTPS ingress controller)
 
-**Grafana**: http://10.0.0.245:3000
+**Pi-hole DNS**: http://10.0.0.249/admin
+**Credentials**: admin / homelab123
+**DNS Service**: 10.0.0.249:53 (TCP/UDP)
+
+**Grafana**: http://10.0.0.243:3000
 **Credentials**: admin / grafana123
 
 **MinIO Console**: https://10.0.0.242:9443

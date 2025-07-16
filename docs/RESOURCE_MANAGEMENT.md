@@ -18,6 +18,7 @@ This guide covers resource management strategies for the homelab-foundations env
 - **MinIO**: Object storage - required for data lake operations
 - **MetalLB**: Load balancer - required for service access
 - **HAProxy Ingress**: Ingress controller - required for web access
+- **Pi-hole DNS**: DNS resolution - required for .homelab.local domains
 - **cert-manager**: Certificate management - lightweight, keep running
 
 **Application Services (Can Scale to Zero)**:

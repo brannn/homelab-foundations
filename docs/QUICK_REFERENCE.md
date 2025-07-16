@@ -18,16 +18,29 @@ kubectl cluster-info
 ```
 
 ### Service URLs
-- **HAProxy Ingress**: http://10.0.0.244 (HTTP/HTTPS ingress controller)
-- **Grafana**: http://10.0.0.245:3000 (admin/grafana123)
+- **HAProxy Ingress**: http://10.0.0.245 (HTTP/HTTPS ingress controller)
+- **Pi-hole DNS**: http://10.0.0.249/admin (admin/homelab123)
+- **Grafana**: http://10.0.0.243:3000 (admin/grafana123)
 - **MinIO Console**: https://10.0.0.242:9443 (minio/minio123)
 - **MinIO S3 API**: https://10.0.0.241:443
-- **Longhorn UI**: http://10.0.0.243 (via LoadBalancer)
-- **Traefik (K3s)**: http://10.0.0.240 (default K3s ingress)
+- **Longhorn UI**: http://10.0.0.240 (via LoadBalancer)
+- **Traefik (K3s)**: http://10.0.0.244 (default K3s ingress)
 - **Trino Web UI**: http://10.0.0.246:8080 (no authentication)
 - **Iceberg REST API**: http://10.0.0.247:8181 (catalog management)
-- **NATS Server**: nats://10.0.0.248:4222 (messaging protocol)
-- **NATS Monitoring**: http://10.0.0.248:8222 (metrics and health)
+- **ClickHouse**: http://10.0.0.248:8123 (HTTP interface)
+- **NATS Monitoring**: http://nats.homelab.local (metrics and health)
+
+### Hostname Access (via Pi-hole DNS)
+Configure Pi-hole (10.0.0.249) as secondary DNS server for hostname resolution:
+- **Grafana**: http://grafana.homelab.local
+- **ClickHouse**: http://clickhouse.homelab.local
+- **Trino**: http://trino.homelab.local
+- **Iceberg REST**: http://iceberg.homelab.local
+- **Longhorn**: http://longhorn.homelab.local
+- **NATS**: http://nats.homelab.local
+- **MinIO Console**: http://minio-console.homelab.local
+- **MinIO S3**: http://minio.homelab.local
+- **Pi-hole**: http://pihole.homelab.local/admin
 
 ### Hybrid GitOps Workflow
 
