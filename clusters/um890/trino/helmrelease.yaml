@@ -136,17 +136,16 @@ spec:
     
     # Catalogs configuration
     catalogs:
-      # Iceberg catalog with REST catalog integration
+      # Iceberg catalog with minimal S3 configuration
       iceberg: |
         connector.name=iceberg
-        iceberg.catalog.type=rest
-        iceberg.rest-catalog.uri=http://iceberg-rest-catalog:8181
-        iceberg.rest-catalog.warehouse=s3://iceberg/
-        fs.s3.aws-access-key=${ENV:MINIO_ACCESS_KEY}
-        fs.s3.aws-secret-key=${ENV:MINIO_SECRET_KEY}
-        fs.s3.endpoint=https://10.0.0.241:443
-        fs.s3.path-style-access=true
-        fs.s3.ssl.enabled=true
+        iceberg.iceberg.default-warehouse-dir=s3://iceberg
+        fs.native-s3.enabled=true
+        s3.endpoint=https://10.0.0.241:443
+        s3.region=us-west-1
+        s3.path-style-access=true
+        s3.aws-access-key=${ENV:MINIO_ACCESS_KEY}
+        s3.aws-secret-key=${ENV:MINIO_SECRET_KEY}
       
       # TPC-H for testing (default)
       tpch: |
