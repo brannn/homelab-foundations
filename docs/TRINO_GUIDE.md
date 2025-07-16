@@ -78,7 +78,7 @@ SELECT current_user, current_catalog, current_schema;
 ```sql
 -- Create a new schema
 CREATE SCHEMA iceberg.analytics
-WITH (location = 's3a://iceberg/analytics/');
+WITH (location = 's3://iceberg/analytics/');
 
 -- Use the schema
 USE iceberg.analytics;
@@ -244,7 +244,7 @@ CREATE TABLE iceberg.analytics.external_data (
     value DOUBLE
 )
 WITH (
-    external_location = 's3a://iceberg/external/',
+    external_location = 's3://iceberg/external/',
     format = 'PARQUET'
 );
 ```

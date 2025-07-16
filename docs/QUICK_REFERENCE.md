@@ -112,7 +112,7 @@ SHOW CATALOGS;
 SHOW SCHEMAS FROM iceberg;
 
 -- Create schema
-CREATE SCHEMA iceberg.analytics WITH (location = 's3a://iceberg/analytics/');
+CREATE SCHEMA iceberg.analytics WITH (location = 's3://iceberg/analytics/');
 
 -- Create table
 CREATE TABLE iceberg.analytics.example (
