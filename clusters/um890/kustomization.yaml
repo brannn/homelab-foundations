@@ -10,5 +10,5 @@ resources:
   - trino
   - nats
   - clickhouse
-  # Longhorn managed by Helmfile (see longhorn/ directory)
-  # MinIO managed by Helmfile (see minio/ directory)
+  - minio  # MinIO ingresses (MinIO itself managed by Helmfile)
+  - longhorn  # Longhorn ingresses (Longhorn itself managed by Helmfile)
