@@ -1,11 +1,52 @@
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: default-pool
+  name: ingress-pool
   namespace: metallb-system
 spec:
   addresses:
-    - 10.0.0.240-10.0.0.250  # Update this range for your network
+    - 10.0.0.244/32  # Traefik (K3s default)
+    - 10.0.0.245/32  # HAProxy ingress controller
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: storage-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.0.0.240/32  # MinIO S3 API
+    - 10.0.0.241/32  # MinIO Console
+    - 10.0.0.242/32  # Longhorn UI
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: analytics-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.0.0.246/32  # Trino
+    - 10.0.0.247/32  # Iceberg REST Catalog
+    - 10.0.0.248/32  # ClickHouse
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: monitoring-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.0.0.243/32  # Grafana
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: dynamic-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.0.0.249-10.0.0.250  # Reserved for future services
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement

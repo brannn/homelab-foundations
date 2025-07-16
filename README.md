@@ -8,7 +8,7 @@
 ## Overview
 It's easier than ever to acquire very powerful mini computer systems at affordable prices, such as the Minisforum UM890 Pro - a Ryzen 9 with 64GB of DDR5 RAM, two M.2. NVMe slots with low heat dissipation and power draw. This makes it possible to effectively replicate an enterprise-class development environment at home in a single node Kubernetes cluster such as with K3s.
 
-This repository provides a complete GitOps foundation for single-node Kubernetes homelab clusters on this class of hardware. The infrastructure uses a hybrid approach with Flux CD for core components and Helmfile for complex multi-component applications, providing a robust and maintainable homelab setup.
+Homelab Foundations provides a complete GitOps foundation for single-node Kubernetes homelab clusters on this class of hardware. The infrastructure uses a hybrid approach with Flux CD for core components and Helmfile for complex multi-component applications, providing a robust and maintainable homelab setup.
 
 ## Infrastructure Components
 

@@ -19,7 +19,9 @@ spec:
       ingressClass: haproxy
       service:
         type: LoadBalancer
-        # loadBalancerIP: 10.0.0.245  # Configure for your MetalLB range
+        loadBalancerIP: 10.0.0.245  # Fixed IP for HAProxy ingress
+        annotations:
+          metallb.universe.tf/loadBalancerIPs: "10.0.0.245"
       resources:
         requests:
           cpu: 100m

@@ -8,7 +8,8 @@ metadata:
     app.kubernetes.io/component: server
     app.kubernetes.io/service: loadbalancer
   annotations:
-    metallb.universe.tf/loadBalancerIPs: "10.0.0.248"  # Available IP for ClickHouse
+    metallb.universe.tf/loadBalancerIPs: "10.0.0.248"  # Fixed IP for ClickHouse
+    metallb.universe.tf/address-pool: "analytics-pool"
 spec:
   type: LoadBalancer
   ports:
