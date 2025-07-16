@@ -162,6 +162,11 @@ spec:
     additionalConfigProperties:
       - internal-communication.shared-secret=trino-homelab-secret
       - http-server.process-forwarded=true
+      - fs.s3.aws-access-key=${ENV:MINIO_ACCESS_KEY}
+      - fs.s3.aws-secret-key=${ENV:MINIO_SECRET_KEY}
+      - fs.s3.endpoint=https://10.0.0.241:443
+      - fs.s3.path-style-access=true
+      - fs.s3.ssl.enabled=true
     
     # Node properties
     additionalNodeProperties:
