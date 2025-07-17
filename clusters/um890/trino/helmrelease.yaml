@@ -147,7 +147,7 @@ spec:
         iceberg.rest-catalog.uri=http://iceberg-rest-catalog:8181
         iceberg.rest-catalog.warehouse=s3://iceberg/
         fs.native-s3.enabled=true
-        s3.endpoint=https://10.0.0.241:443
+        s3.endpoint=http://10.0.0.241:80
         s3.region=us-west-1
         s3.path-style-access=true
         s3.aws-access-key=${ENV:MINIO_ACCESS_KEY}
