@@ -41,7 +41,7 @@ tenant:
           type: RuntimeDefault
   
   certificate:
-    requestAutoCert: true  # Enable self-signed certificates for HTTPS console
+    requestAutoCert: false  # Disable certificates - use HTTP only
   
   exposeServices:
     minio: true

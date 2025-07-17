@@ -5,22 +5,17 @@ metadata:
   namespace: minio-tenant
   annotations:
     kubernetes.io/ingress.class: haproxy
-    cert-manager.io/cluster-issuer: selfsigned-issuer
-    haproxy.org/ssl-redirect: "true"  # MinIO console requires HTTPS
+    haproxy.org/ssl-redirect: "false"  # MinIO console uses HTTP
     haproxy.org/timeout-http-request: "30s"
     haproxy.org/timeout-connect: "10s"
     haproxy.org/timeout-client: "60s"
     haproxy.org/timeout-server: "60s"
-    haproxy.org/backend-protocol: "https"  # Backend uses HTTPS
+    haproxy.org/backend-protocol: "http"  # Backend uses HTTP
   labels:
     app.kubernetes.io/name: minio
     app.kubernetes.io/component: console
     app.kubernetes.io/service: ingress
 spec:
-  tls:
-    - hosts:
-        - minio-console.homelab.local
-      secretName: minio-console-tls
   rules:
     - host: minio-console.homelab.local
       http:
@@ -31,7 +26,7 @@ spec:
               service:
                 name: minio-tenant-console
                 port:
-                  number: 9443
+                  number: 9090
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -40,22 +35,17 @@ metadata:
   namespace: minio-tenant
   annotations:
     kubernetes.io/ingress.class: haproxy
-    cert-manager.io/cluster-issuer: selfsigned-issuer
-    haproxy.org/ssl-redirect: "true"  # MinIO S3 API requires HTTPS
+    haproxy.org/ssl-redirect: "false"  # MinIO S3 API uses HTTP
     haproxy.org/timeout-http-request: "30s"
     haproxy.org/timeout-connect: "10s"
     haproxy.org/timeout-client: "300s"  # Longer timeout for large uploads
     haproxy.org/timeout-server: "300s"
-    haproxy.org/backend-protocol: "https"  # Backend uses HTTPS
+    haproxy.org/backend-protocol: "http"  # Backend uses HTTP
   labels:
     app.kubernetes.io/name: minio
     app.kubernetes.io/component: s3-api
     app.kubernetes.io/service: ingress
 spec:
-  tls:
-    - hosts:
-        - minio.homelab.local
-      secretName: minio-s3-tls
   rules:
     - host: minio.homelab.local
       http:
@@ -66,4 +56,4 @@ spec:
               service:
                 name: minio
                 port:
-                  number: 443
+                  number: 80
