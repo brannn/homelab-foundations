@@ -30,6 +30,11 @@ spec:
         subPath: minio.crt
         readOnly: true
 
+    # Global environment variables for AWS SDK
+    env:
+      - name: AWS_CA_BUNDLE
+        value: /etc/ssl/certs/minio.crt
+
 
     
     # Server configuration
@@ -48,9 +53,6 @@ spec:
     coordinator:
       jvm:
         maxHeapSize: "3g"  # Increased for better performance
-      env:
-        - name: AWS_CA_BUNDLE
-          value: /etc/ssl/certs/minio.crt
       config:
         query:
           maxMemoryPerNode: "2GB"  # Increased with more headroom
@@ -79,9 +81,6 @@ spec:
     worker:
       jvm:
         maxHeapSize: "5g"  # Increased for better performance
-      env:
-        - name: AWS_CA_BUNDLE
-          value: /etc/ssl/certs/minio.crt
       config:
         query:
           maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
