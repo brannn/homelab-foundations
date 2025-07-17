@@ -1,0 +1,61 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: temporal-postgres
+  namespace: temporal-system
+  labels:
+    app.kubernetes.io/name: temporal-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: temporal
+spec:
+  instances: 1  # Single instance - no HA needed for homelab
+
+  # PostgreSQL configuration optimized for minimal resource usage
+  postgresql:
+    parameters:
+      # Minimal connection settings
+      max_connections: "50"          # Reduced from default 100
+      shared_buffers: "64MB"         # Minimal shared buffer
+      effective_cache_size: "128MB"  # Conservative cache size
+      work_mem: "1MB"                # Minimal work memory
+      maintenance_work_mem: "32MB"   # Reduced maintenance memory
+
+      # Logging (minimal for homelab)
+      log_statement: "none"
+      log_min_duration_statement: "5000"  # Only log slow queries
+
+  # Bootstrap with Temporal-specific database
+  bootstrap:
+    initdb:
+      database: temporal
+      owner: temporal
+      secret:
+        name: temporal-postgres-credentials
+
+  # Minimal storage allocation
+  storage:
+    size: 10Gi  # Reduced from 20Gi - sufficient for homelab workflows
+    storageClass: longhorn
+
+  # Minimal resource allocation (512Mi total)
+  resources:
+    requests:
+      memory: 384Mi  # Minimal PostgreSQL memory
+      cpu: 100m      # Low CPU requirement
+    limits:
+      memory: 512Mi  # Hard limit for homelab resource management
+      cpu: 200m      # Burst capability
+
+  # Backup configuration (using validated CNPG setup)
+  backup:
+    retentionPolicy: "14d"  # Shorter retention for homelab
+    barmanObjectStore:
+      destinationPath: "s3://postgres-backups/temporal"
+      s3Credentials:
+        accessKeyId:
+          name: minio-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: minio-backup-credentials
+          key: SECRET_ACCESS_KEY
+      endpointURL: "http://10.0.0.241:80"  # MinIO S3 API LoadBalancer endpoint

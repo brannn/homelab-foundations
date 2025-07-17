@@ -8,8 +8,9 @@ resources:
   - haproxy-ingress
   - cnpg  # CloudNativePG operator for PostgreSQL management
   - monitoring
-  - trino
   - nats
+  - temporal
+  - trino
   - clickhouse
   - minio  # MinIO ingresses (MinIO itself managed by Helmfile)
   - longhorn  # Longhorn ingresses (Longhorn itself managed by Helmfile)

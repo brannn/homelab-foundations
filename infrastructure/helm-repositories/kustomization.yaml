@@ -10,5 +10,6 @@ resources:
   - haproxy-tech.yaml
   - metallb.yaml
   - nats.yaml
+  - temporal.yaml
   - trino.yaml
   # MinIO charts managed by Helmfile

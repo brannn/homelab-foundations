@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: temporal-web
+  namespace: temporal-system
+  annotations:
+    kubernetes.io/ingress.class: haproxy
+    haproxy.org/ssl-redirect: "false"
+    haproxy.org/timeout-http-request: "30s"
+    haproxy.org/timeout-connect: "10s"
+    haproxy.org/timeout-client: "60s"
+    haproxy.org/timeout-server: "60s"
+    haproxy.org/backend-protocol: "http"
+  labels:
+    app.kubernetes.io/name: temporal
+    app.kubernetes.io/component: web
+    app.kubernetes.io/service: ingress
+spec:
+  rules:
+    - host: temporal.homelab.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: temporal-web
+                port:
+                  number: 8080

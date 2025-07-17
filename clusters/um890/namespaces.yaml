@@ -61,3 +61,10 @@ metadata:
   name: cnpg-system
   labels:
     name: cnpg-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: temporal-system
+  labels:
+    name: temporal-system

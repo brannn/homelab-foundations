@@ -23,7 +23,7 @@ This document defines the permanent IP address assignments for all services in t
 - **10.0.0.247**: Iceberg REST Catalog (http://10.0.0.247:8181)
 - **10.0.0.248**: ClickHouse Database (http://10.0.0.248:8123)
 - **10.0.0.249**: Pi-hole DNS Server (http://10.0.0.249:80, dns://10.0.0.249:53)
-- **10.0.0.250**: Reserved for future services
+- **10.0.0.250**: Temporal Workflow System (http://10.0.0.250:8080, grpc://10.0.0.250:7233)
 
 ## MetalLB Configuration
 
@@ -51,8 +51,8 @@ The MetalLB configuration uses dedicated pools for different service categories:
 #### **DNS Pool (10.0.0.249)**
 - **10.0.0.249**: Pi-hole DNS server
 
-#### **Dynamic Pool (10.0.0.250)**
-- **10.0.0.250**: Reserved for future services
+#### **Workflow Pool (10.0.0.250)**
+- **10.0.0.250**: Temporal workflow system
 
 ## Service Assignments
 
