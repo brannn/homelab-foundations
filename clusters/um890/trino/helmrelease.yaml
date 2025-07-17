@@ -39,6 +39,8 @@ spec:
         additionalJvmArgs:
           - "-Dcom.amazonaws.sdk.disableCertChecking=true"
           - "-Dtrust_all_cert=true"
+          - "-Djavax.net.ssl.trustStore=NONE"
+          - "-Djavax.net.ssl.trustStoreType=NONE"
       config:
         query:
           maxMemoryPerNode: "2GB"  # Increased with more headroom
@@ -70,6 +72,8 @@ spec:
         additionalJvmArgs:
           - "-Dcom.amazonaws.sdk.disableCertChecking=true"
           - "-Dtrust_all_cert=true"
+          - "-Djavax.net.ssl.trustStore=NONE"
+          - "-Djavax.net.ssl.trustStoreType=NONE"
       config:
         query:
           maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
