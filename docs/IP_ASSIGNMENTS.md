@@ -13,9 +13,9 @@ This document defines the permanent IP address assignments for all services in t
 
 **These addresses NEVER change:**
 
-- **10.0.0.240**: MinIO S3 API (https://10.0.0.240:443)
-- **10.0.0.241**: MinIO Console (https://10.0.0.241:9443)
-- **10.0.0.242**: Longhorn UI (http://10.0.0.242:80)
+- **10.0.0.240**: Longhorn UI (http://10.0.0.240:80)
+- **10.0.0.241**: MinIO S3 API (http://10.0.0.241:80)
+- **10.0.0.242**: MinIO Console (http://10.0.0.242:9090)
 - **10.0.0.243**: Grafana Dashboard (http://10.0.0.243:3000)
 - **10.0.0.244**: Traefik Ingress (http://10.0.0.244:80)
 - **10.0.0.245**: HAProxy Ingress (http://10.0.0.245:80)
@@ -36,9 +36,9 @@ The MetalLB configuration uses dedicated pools for different service categories:
 - **10.0.0.245**: HAProxy ingress controller
 
 #### **Storage Pool (10.0.0.240-242)**
-- **10.0.0.240**: MinIO S3 API
-- **10.0.0.241**: MinIO Console
-- **10.0.0.242**: Longhorn UI
+- **10.0.0.240**: Longhorn UI
+- **10.0.0.241**: MinIO S3 API
+- **10.0.0.242**: MinIO Console
 
 #### **Analytics Pool (10.0.0.246-248)**
 - **10.0.0.246**: Trino Query Engine
@@ -76,17 +76,21 @@ The MetalLB configuration uses dedicated pools for different service categories:
 ### **Storage Services**
 
 #### **MinIO Object Storage**
-- **S3 API IP**: 10.0.0.240 (FIXED)
-- **Console IP**: 10.0.0.241 (FIXED)
+- **S3 API IP**: 10.0.0.241 (FIXED)
+- **Console IP**: 10.0.0.242 (FIXED)
 - **Pool**: storage-pool
+- **Protocol**: HTTP (no SSL/TLS)
 - **Access**:
-  - S3 API: https://10.0.0.240:443
-  - Console: https://10.0.0.241:9443
+  - S3 API: http://10.0.0.241:80
+  - Console: http://10.0.0.242:9090
+- **Ingress Access**:
+  - S3 API: http://minio.homelab.local
+  - Console: http://minio-console.homelab.local
 
 #### **Longhorn Storage UI**
-- **IP**: 10.0.0.242 (FIXED)
+- **IP**: 10.0.0.240 (FIXED)
 - **Pool**: storage-pool
-- **Access**: http://10.0.0.242:80
+- **Access**: http://10.0.0.240:80
 
 ### **Analytics Services**
 
