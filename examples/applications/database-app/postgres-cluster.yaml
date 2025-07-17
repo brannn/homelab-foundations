@@ -52,10 +52,8 @@ spec:
       memory: 500Mi
       cpu: 500m
       
-  # Monitoring
-  monitoring:
-    enabled: true
-    
+  # Monitoring (enabled by default in CNPG)
+
   # Backup configuration
   backup:
     retentionPolicy: "30d"
@@ -69,7 +67,3 @@ spec:
           name: minio-backup-credentials
           key: SECRET_ACCESS_KEY
       endpointURL: "http://minio-tenant-hl.minio-tenant.svc.cluster.local:9000"
-      wal:
-        retention: "7d"
-      data:
-        retention: "30d"
