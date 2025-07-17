@@ -18,6 +18,18 @@ spec:
     image:
       tag: "476"  # Use specific version for stability
 
+    # Mount MinIO certificate for AWS SDK
+    additionalVolumes:
+      - name: minio-ca-cert
+        configMap:
+          name: minio-ca-cert
+
+    additionalVolumeMounts:
+      - name: minio-ca-cert
+        mountPath: /etc/ssl/certs/minio.crt
+        subPath: minio.crt
+        readOnly: true
+
 
     
     # Server configuration
@@ -36,13 +48,9 @@ spec:
     coordinator:
       jvm:
         maxHeapSize: "3g"  # Increased for better performance
-        additionalJvmArgs:
-          - "-Djavax.net.ssl.trustStore="
-          - "-Djavax.net.ssl.trustStorePassword="
-          - "-Djavax.net.ssl.trustStoreType=JKS"
-          - "-Dtrust_all_cert=true"
-          - "-Dcom.sun.net.ssl.checkRevocation=false"
-          - "-Dtrust_all_cert=true"
+      env:
+        - name: AWS_CA_BUNDLE
+          value: /etc/ssl/certs/minio.crt
       config:
         query:
           maxMemoryPerNode: "2GB"  # Increased with more headroom
@@ -71,13 +79,9 @@ spec:
     worker:
       jvm:
         maxHeapSize: "5g"  # Increased for better performance
-        additionalJvmArgs:
-          - "-Djavax.net.ssl.trustStore="
-          - "-Djavax.net.ssl.trustStorePassword="
-          - "-Djavax.net.ssl.trustStoreType=JKS"
-          - "-Dtrust_all_cert=true"
-          - "-Dcom.sun.net.ssl.checkRevocation=false"
-          - "-Dtrust_all_cert=true"
+      env:
+        - name: AWS_CA_BUNDLE
+          value: /etc/ssl/certs/minio.crt
       config:
         query:
           maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
