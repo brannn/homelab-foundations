@@ -1,0 +1,40 @@
+# CNPG Monitoring Configuration
+# ServiceMonitors for Prometheus to scrape CNPG operator and PostgreSQL cluster metrics
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cnpg-operator
+  namespace: cnpg-system
+  labels:
+    prometheus: kube-prometheus
+    app.kubernetes.io/name: cnpg-operator
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cloudnative-pg
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cnpg-clusters
+  namespace: cnpg-system
+  labels:
+    prometheus: kube-prometheus
+    app.kubernetes.io/name: cnpg-clusters
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: ""
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+  namespaceSelector:
+    any: true

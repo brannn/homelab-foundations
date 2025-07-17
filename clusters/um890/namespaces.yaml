@@ -54,3 +54,10 @@ metadata:
   name: clickhouse
   labels:
     name: clickhouse
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cnpg-system
+  labels:
+    name: cnpg-system

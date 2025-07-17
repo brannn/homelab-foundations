@@ -22,6 +22,7 @@ Homelab Foundations provides a complete GitOps foundation for single-node Kubern
 - **Load Balancer**: MetalLB with configurable IP ranges - *Uses v1beta1 API*
 - **Certificates**: cert-manager for TLS certificate management - *Chart version >=1.13.0*
 - **Ingress**: HAProxy Ingress Controller for HTTP/HTTPS routing - *Chart version >=1.44.0*
+- **PostgreSQL Operator**: CloudNativePG (CNPG) for PostgreSQL database management - *Chart version >=0.22.0*
 - **Monitoring**: Prometheus + Grafana stack with pre-configured dashboards - *kube-prometheus-stack v61.3.2, Grafana v8.4.2*
 - **Analytics Engine**: Trino distributed SQL query engine - *Chart version 1.39.1, Trino v476*
 - **Data Lake**: Apache Iceberg REST Catalog for ACID transactions and schema evolution - *Tabular REST Catalog v0.1.0*
@@ -81,6 +82,7 @@ homelab-foundations/
 │       ├── metallb/              # MetalLB configuration
 │       ├── cert-manager/         # Certificate management
 │       ├── haproxy-ingress/      # HAProxy Ingress Controller
+│       ├── cnpg/                # CloudNativePG PostgreSQL operator
 │       ├── dns/                 # Pi-hole DNS server for .homelab.local
 │       ├── monitoring/           # Prometheus + Grafana stack
 │       │   ├── prometheus/       # Prometheus monitoring
@@ -155,6 +157,16 @@ homelab-foundations/
 - **ClusterIssuer**: Pre-configured for Let's Encrypt (staging and production)
 - **Integration**: Ready for use with ingress controllers and services
 - **Note**: Currently available but not integrated with existing services
+
+### CloudNativePG (Flux-managed)
+- **Namespace**: cnpg-system
+- **Purpose**: PostgreSQL database management and automation
+- **Architecture**: Co-located PostgreSQL instances with applications
+- **Backup**: Automated backup to MinIO S3-compatible storage
+- **Monitoring**: Full Prometheus metrics and Grafana dashboards
+- **Resource Usage**: ~384Mi memory for operator infrastructure
+- **Features**: High availability, automated failover, point-in-time recovery
+- **Templates**: Available in docs/templates/ for easy PostgreSQL deployment
 
 ### Monitoring (Flux-managed)
 - **Namespace**: monitoring

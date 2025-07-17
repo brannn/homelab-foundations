@@ -1,0 +1,75 @@
+# Example PostgreSQL Cluster using CloudNativePG
+# This is an example configuration - customize for your application
+
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: example-app-postgres
+  namespace: example-app
+  labels:
+    app.kubernetes.io/name: example-app-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: example-app
+spec:
+  instances: 1  # Single instance for homelab
+  
+  # PostgreSQL configuration
+  postgresql:
+    parameters:
+      # Performance tuning for homelab
+      max_connections: "100"
+      shared_buffers: "128MB"
+      effective_cache_size: "256MB"
+      work_mem: "2MB"
+      maintenance_work_mem: "64MB"
+      
+      # Logging
+      log_statement: "none"
+      log_min_duration_statement: "1000"
+      
+      # Monitoring
+      shared_preload_libraries: "pg_stat_statements"
+      
+  # Bootstrap configuration
+  bootstrap:
+    initdb:
+      database: example_db
+      owner: example_user
+      secret:
+        name: example-app-postgres-credentials
+        
+  # Storage configuration
+  storage:
+    size: 20Gi
+    storageClass: longhorn
+    
+  # Resource allocation (adjust per application)
+  resources:
+    requests:
+      memory: 500Mi
+      cpu: 250m
+    limits:
+      memory: 500Mi
+      cpu: 500m
+      
+  # Monitoring
+  monitoring:
+    enabled: true
+    
+  # Backup configuration
+  backup:
+    retentionPolicy: "30d"
+    barmanObjectStore:
+      destinationPath: "s3://postgres-backups/example-app"
+      s3Credentials:
+        accessKeyId:
+          name: minio-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: minio-backup-credentials
+          key: SECRET_ACCESS_KEY
+      endpointURL: "http://minio-tenant-hl.minio-tenant.svc.cluster.local:9000"
+      wal:
+        retention: "7d"
+      data:
+        retention: "30d"

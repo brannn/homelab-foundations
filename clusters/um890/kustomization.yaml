@@ -6,6 +6,7 @@ resources:
   - metallb
   - cert-manager
   - haproxy-ingress
+  - cnpg  # CloudNativePG operator for PostgreSQL management
   - monitoring
   - trino
   - nats

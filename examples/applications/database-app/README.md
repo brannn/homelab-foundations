@@ -1,53 +1,107 @@
 # Database Application Example
 
+**Version**: 1.1
+**Date**: 2025-07-17
+**Author**: Community Contributors
+**Status**: Active
+
 ## Overview
 
-This example shows deployment of a stateful database application (PostgreSQL) with persistent storage using Longhorn CSI, secret management, and backup considerations.
+This example demonstrates how to deploy an application with a PostgreSQL database using the CloudNativePG (CNPG) operator in homelab-foundations. It follows the co-located architecture pattern where the PostgreSQL instance is managed alongside the application.
 
 ## Components
 
-- **StatefulSet**: PostgreSQL database with persistent storage
-- **Service**: Internal service for database access
-- **PersistentVolumeClaim**: Longhorn-backed storage for data persistence
+- **CNPG Cluster**: PostgreSQL database managed by CloudNativePG operator
+- **Application Deployment**: Example application that connects to PostgreSQL
+- **Service**: Internal service for application access
 - **Secret**: Database credentials and configuration
-- **ConfigMap**: Database initialization scripts
 - **ServiceMonitor**: Prometheus monitoring integration
+- **Ingress**: External access configuration (optional)
 
 ## Features
 
-- Persistent data storage via Longhorn CSI
-- Secure credential management with Kubernetes secrets
-- Database initialization with custom scripts
-- Health checks and monitoring
-- Backup-ready configuration
-- Resource limits and security contexts
+- **Modern PostgreSQL Management**: Uses CloudNativePG operator for advanced features
+- **Automated Backups**: Built-in backup to MinIO S3-compatible storage
+- **High Availability**: Operator-managed failover and recovery
+- **Monitoring Integration**: Full Prometheus metrics and Grafana dashboards
+- **Co-located Architecture**: Database and application managed together
+- **GitOps Ready**: Fully declarative configuration
 
 ## Prerequisites
 
-- Longhorn CSI deployed and healthy
-- Sufficient storage capacity available
-- Monitoring stack (optional, for metrics)
+- **CNPG Operator**: CloudNativePG operator deployed and operational
+- **MinIO Backup Credentials**: Configured in cnpg-system namespace
+- **Longhorn CSI**: Deployed and healthy for persistent storage
+- **Monitoring Stack**: Prometheus operational for metrics collection
+
+## Architecture
+
+### Co-located Pattern
+```
+clusters/um890/my-app/
+├── kustomization.yaml           # Main kustomization
+├── postgres-cluster.yaml       # PostgreSQL cluster (co-located)
+├── postgres-secret.yaml        # Database credentials
+├── postgres-init-job.yaml      # Optional schema initialization
+├── deployment.yaml             # Application deployment
+├── service.yaml                # Application service
+├── ingress.yaml                # Application ingress
+└── servicemonitor.yaml         # Monitoring configuration
+```
+
+### Benefits
+- **Single Source of Truth**: All app-related configs in one place
+- **Atomic Deployments**: Database and application deploy together
+- **Easier Troubleshooting**: All related resources in one location
+- **Clear Ownership**: Application team owns database configuration
 
 ## Configuration
 
-### 1. Database Credentials
-The example uses a Kubernetes secret for database credentials. In production, consider using external secret management.
-
-### 2. Storage Size
-Edit `statefulset.yaml` to adjust storage requirements:
-```yaml
-volumeClaimTemplates:
-- metadata:
-    name: postgres-data
-  spec:
-    resources:
-      requests:
-        storage: 20Gi  # Adjust as needed
+### 1. PostgreSQL Cluster Setup
+Copy and customize the PostgreSQL cluster template:
+```bash
+cp docs/templates/postgres-cluster-template.yaml clusters/um890/my-app/postgres-cluster.yaml
 ```
 
-### 3. Resource Limits
-Adjust CPU and memory based on your workload:
+Edit the cluster configuration:
 ```yaml
+metadata:
+  name: my-app-postgres
+  namespace: my-app-namespace
+
+bootstrap:
+  initdb:
+    database: myapp_db
+    owner: myapp_user
+    secret:
+      name: my-app-postgres-credentials
+
+storage:
+  size: 20Gi  # Adjust as needed
+  storageClass: longhorn
+
+resources:
+  requests:
+    memory: 500Mi  # Adjust based on workload
+    cpu: 250m
+  limits:
+    memory: 500Mi
+    cpu: 500m
+```
+
+### 2. Database Credentials
+Create secure credentials (never commit to Git):
+```bash
+USERNAME="myapp_user"
+PASSWORD="$(openssl rand -base64 32)"
+
+# Create base64 encoded values
+USERNAME_B64=$(echo -n "$USERNAME" | base64)
+PASSWORD_B64=$(echo -n "$PASSWORD" | base64)
+```
+
+### 3. Application Connection
+Configure your application to connect to PostgreSQL:
 resources:
   limits:
     cpu: 1000m

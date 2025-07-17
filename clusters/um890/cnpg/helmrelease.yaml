@@ -1,0 +1,68 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: cloudnative-pg
+  namespace: cnpg-system
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: cloudnative-pg
+      version: '>=0.22.0'
+      sourceRef:
+        kind: HelmRepository
+        name: cnpg
+        namespace: flux-system
+  values:
+    # Operator configuration
+    replicaCount: 1
+    
+    # Resource allocation
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    
+    # Monitoring configuration
+    monitoring:
+      enabled: true
+      createGrafanaDashboard: true
+      grafanaDashboard:
+        namespace: monitoring
+        labels:
+          grafana_dashboard: "1"
+    
+    # Webhook configuration
+    webhook:
+      replicaCount: 1
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    
+    # Security context
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 10001
+      seccompProfile:
+        type: RuntimeDefault
+    
+    # Additional configuration
+    config:
+      # Enable monitoring for all clusters by default
+      MONITORING_ENABLED: "true"
+      # Default backup retention
+      BACKUP_RETENTION_POLICY: "30d"
+      # Log level
+      LOG_LEVEL: "info"
