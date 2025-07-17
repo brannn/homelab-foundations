@@ -75,4 +75,4 @@ spec:
         secretAccessKey:
           name: minio-backup-credentials
           key: SECRET_ACCESS_KEY
-      endpointURL: "http://minio-tenant-hl.minio-tenant.svc.cluster.local:9000"
+      endpointURL: "http://10.0.0.241:80"
