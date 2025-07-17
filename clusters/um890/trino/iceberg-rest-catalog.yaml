@@ -50,6 +50,8 @@ spec:
                   key: secret-key
             - name: CATALOG_S3_PATH__STYLE__ACCESS
               value: "true"
+            - name: AWS_REGION
+              value: "us-west-1"
             # JVM configuration
             - name: JAVA_OPTS
               value: "-Xmx512m -Xms512m"
