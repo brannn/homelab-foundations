@@ -7,7 +7,6 @@ resources:
   - cert-manager
   - haproxy-ingress
   - cnpg  # CloudNativePG operator for PostgreSQL management
-  - cnpg-test  # Test PostgreSQL cluster for CNPG validation
   - monitoring
   - trino
   - nats
