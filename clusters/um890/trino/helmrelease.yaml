@@ -18,59 +18,7 @@ spec:
     image:
       tag: "476"  # Use specific version for stability
 
-    # Mount MinIO certificate for SSL trust
 
-    additionalVolumeMounts:
-      - name: minio-ca-cert
-        mountPath: /etc/ssl/certs/minio-ca.crt
-        subPath: minio-ca.crt
-        readOnly: true
-      - name: java-cacerts
-        mountPath: /etc/ssl/certs/java
-        readOnly: false
-
-    # Init containers to add MinIO cert to Java trust store
-    initContainers:
-      coordinator:
-        - name: setup-ssl-trust
-          image: openjdk:11-jre-slim
-          command:
-            - /bin/bash
-            - -c
-            - |
-              cp /opt/java/openjdk/lib/security/cacerts /etc/ssl/certs/java/cacerts
-              keytool -import -trustcacerts -keystore /etc/ssl/certs/java/cacerts -storepass changeit -noprompt -alias minio-ca -file /etc/ssl/certs/minio-ca.crt
-          volumeMounts:
-            - name: minio-ca-cert
-              mountPath: /etc/ssl/certs/minio-ca.crt
-              subPath: minio-ca.crt
-              readOnly: true
-            - name: java-cacerts
-              mountPath: /etc/ssl/certs/java
-      worker:
-        - name: setup-ssl-trust
-          image: openjdk:11-jre-slim
-          command:
-            - /bin/bash
-            - -c
-            - |
-              cp /opt/java/openjdk/lib/security/cacerts /etc/ssl/certs/java/cacerts
-              keytool -import -trustcacerts -keystore /etc/ssl/certs/java/cacerts -storepass changeit -noprompt -alias minio-ca -file /etc/ssl/certs/minio-ca.crt
-          volumeMounts:
-            - name: minio-ca-cert
-              mountPath: /etc/ssl/certs/minio-ca.crt
-              subPath: minio-ca.crt
-              readOnly: true
-            - name: java-cacerts
-              mountPath: /etc/ssl/certs/java
-
-    # Additional volume for Java cacerts
-    additionalVolumes:
-      - name: minio-ca-cert
-        configMap:
-          name: minio-ca-cert
-      - name: java-cacerts
-        emptyDir: {}
     
     # Server configuration
     server:
@@ -91,8 +39,8 @@ spec:
         gcMethod:
           type: "G1GC"
         additionalJvmArgs:
-          - "-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts"
-          - "-Djavax.net.ssl.trustStorePassword=changeit"
+          - "-Dcom.amazonaws.sdk.disableCertChecking=true"
+          - "-Dtrust_all_cert=true"
       config:
         query:
           maxMemoryPerNode: "2GB"  # Increased with more headroom
@@ -124,8 +72,8 @@ spec:
         gcMethod:
           type: "G1GC"
         additionalJvmArgs:
-          - "-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts"
-          - "-Djavax.net.ssl.trustStorePassword=changeit"
+          - "-Dcom.amazonaws.sdk.disableCertChecking=true"
+          - "-Dtrust_all_cert=true"
       config:
         query:
           maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
@@ -210,7 +158,6 @@ spec:
         s3.endpoint=https://10.0.0.241:443
         s3.region=us-west-1
         s3.path-style-access=true
-        s3.ssl-verification-enabled=false
         s3.aws-access-key=${ENV:MINIO_ACCESS_KEY}
         s3.aws-secret-key=${ENV:MINIO_SECRET_KEY}
       
