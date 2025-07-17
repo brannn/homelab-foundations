@@ -36,8 +36,6 @@ spec:
     coordinator:
       jvm:
         maxHeapSize: "3g"  # Increased for better performance
-        gcMethod:
-          type: "G1"
         additionalJvmArgs:
           - "-Dcom.amazonaws.sdk.disableCertChecking=true"
           - "-Dtrust_all_cert=true"
@@ -69,8 +67,6 @@ spec:
     worker:
       jvm:
         maxHeapSize: "5g"  # Increased for better performance
-        gcMethod:
-          type: "G1"
         additionalJvmArgs:
           - "-Dcom.amazonaws.sdk.disableCertChecking=true"
           - "-Dtrust_all_cert=true"
