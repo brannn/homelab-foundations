@@ -37,7 +37,7 @@ spec:
       jvm:
         maxHeapSize: "3g"  # Increased for better performance
         gcMethod:
-          type: "G1GC"
+          type: "G1"
         additionalJvmArgs:
           - "-Dcom.amazonaws.sdk.disableCertChecking=true"
           - "-Dtrust_all_cert=true"
@@ -70,7 +70,7 @@ spec:
       jvm:
         maxHeapSize: "5g"  # Increased for better performance
         gcMethod:
-          type: "G1GC"
+          type: "G1"
         additionalJvmArgs:
           - "-Dcom.amazonaws.sdk.disableCertChecking=true"
           - "-Dtrust_all_cert=true"
