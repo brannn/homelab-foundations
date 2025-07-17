@@ -38,9 +38,6 @@ spec:
     coordinator:
       jvm:
         maxHeapSize: "3g"  # Increased for better performance
-        additionalJvmArgs:
-          - "-Dcom.sun.net.ssl.checkRevocation=false"
-          - "-Dtrust_all_cert=true"
       config:
         query:
           maxMemoryPerNode: "2GB"  # Increased with more headroom
@@ -69,9 +66,6 @@ spec:
     worker:
       jvm:
         maxHeapSize: "5g"  # Increased for better performance
-        additionalJvmArgs:
-          - "-Dcom.sun.net.ssl.checkRevocation=false"
-          - "-Dtrust_all_cert=true"
       config:
         query:
           maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
