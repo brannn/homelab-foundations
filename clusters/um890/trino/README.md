@@ -7,7 +7,7 @@ This deployment provides a complete Trino cluster with Apache Iceberg integratio
 - **Trino Coordinator**: Query planning and coordination (2GB RAM)
 - **Trino Worker**: Query execution (4GB RAM)  
 - **Iceberg REST Catalog**: Metadata management (512MB RAM)
-- **MinIO Integration**: S3-compatible storage backend
+- **MinIO Integration**: S3-compatible storage backend (HTTP-only)
 - **Monitoring**: Prometheus metrics and Grafana dashboards
 
 ## Architecture
@@ -42,15 +42,16 @@ This deployment provides a complete Trino cluster with Apache Iceberg integratio
 - **API**: REST API for table operations
 
 ### Storage Integration
-- **Backend**: MinIO tenant with dedicated `iceberg` bucket
+- **Backend**: MinIO tenant with dedicated `iceberg` bucket (HTTP-only)
 - **Format**: Apache Iceberg tables with S3-compatible storage
 - **Features**: Time travel, schema evolution, ACID transactions
+- **Status**: ✅ Fully functional - SSL certificate issues resolved
 
 ## Access Methods
 
 ### Trino Web UI
-- **URL**: https://trino.homelab.local (via HAProxy ingress)
-- **Direct IP**: http://10.0.0.241:8080 (via MetalLB LoadBalancer)
+- **URL**: http://trino.homelab.local (via HAProxy ingress)
+- **Direct IP**: http://10.0.0.246:8080 (via MetalLB LoadBalancer)
 - **Features**: Query editor, execution history, cluster status
 
 ### Trino CLI
@@ -60,12 +61,12 @@ curl -o trino https://repo1.maven.org/maven2/io/trino/trino-cli/476/trino-cli-47
 chmod +x trino
 
 # Connect to cluster
-./trino --server http://10.0.0.241:8080
+./trino --server http://10.0.0.246:8080
 ```
 
 ### Iceberg REST API
-- **URL**: https://iceberg.homelab.local (via HAProxy ingress)
-- **Direct IP**: http://10.0.0.242:8181 (via MetalLB LoadBalancer)
+- **URL**: http://iceberg.homelab.local (via HAProxy ingress)
+- **Direct IP**: http://10.0.0.247:8181 (via MetalLB LoadBalancer)
 - **Endpoints**: `/v1/config`, `/v1/namespaces`, `/v1/namespaces/{namespace}/tables`
 
 ## Usage Examples

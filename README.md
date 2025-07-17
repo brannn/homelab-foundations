@@ -138,15 +138,16 @@ homelab-foundations/
 - **Replica Count**: 1 (single node)
 - **Namespace**: longhorn-system
 
-### MinIO (Helmfile-managed)
-- **Management**: Helmfile (not Flux)
+### MinIO (Helm-managed)
+- **Management**: Direct Helm (not Flux)
 - **Operator Namespace**: minio-operator
 - **Tenant Namespace**: minio-tenant
 - **Tenant Name**: minio-tenant
 - **Storage**: Configurable size (default: 300Gi per pool)
-- **Certificates**: Auto-generated self-signed for HTTPS
+- **Protocol**: HTTP-only (no SSL/TLS for homelab simplicity)
 - **Access**: S3 API and Console via MetalLB LoadBalancer
 - **Credentials**: Configurable (see minio/tenant-values.yaml)
+- **Status**: ✅ Fully functional with Trino integration
 
 ### cert-manager (Flux-managed)
 - **Namespace**: cert-manager
@@ -215,9 +216,9 @@ homelab-foundations/
 2. Commit and push changes to main branch
 3. Flux automatically syncs changes to the cluster (default: 1 minute interval)
 
-**MinIO** (Helmfile-managed):
+**MinIO** (Helm-managed):
 1. Edit configuration in minio/ directory
-2. Apply changes: `cd minio && helmfile apply`
+2. Apply changes: `cd minio && helm upgrade --install minio-tenant minio/tenant -n minio-tenant -f tenant-values.yaml`
 
 ### Manual Sync
 ```bash
@@ -226,7 +227,7 @@ flux reconcile source git flux-system
 flux reconcile kustomization flux-system
 
 # MinIO
-cd minio && helmfile apply
+cd minio && helm upgrade --install minio-tenant minio/tenant -n minio-tenant -f tenant-values.yaml
 ```
 
 ### Monitoring
@@ -235,8 +236,8 @@ cd minio && helmfile apply
 flux get all
 
 # Check MinIO status
-helmfile status
 kubectl get tenant -n minio-tenant
+kubectl get svc -n minio-tenant
 ```
 
 ## Security Considerations

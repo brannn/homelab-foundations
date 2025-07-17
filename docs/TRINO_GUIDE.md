@@ -21,7 +21,7 @@ This guide covers the Trino distributed SQL query engine deployment in homelab-f
 - **Trino Coordinator**: Query planning, client connections, metadata
 - **Trino Worker**: Query execution, data processing
 - **Iceberg REST Catalog**: Table metadata, schema evolution, ACID transactions
-- **MinIO Integration**: S3-compatible storage backend
+- **MinIO Integration**: S3-compatible storage backend (HTTP-only)
 
 ## Access Information
 
@@ -50,8 +50,9 @@ chmod +x trino
 ### Iceberg Catalog
 - **Name**: `iceberg`
 - **Type**: Apache Iceberg with REST catalog
-- **Storage**: MinIO S3 backend
+- **Storage**: MinIO S3 backend (HTTP-only for homelab simplicity)
 - **Features**: ACID transactions, schema evolution, time travel
+- **Status**: ✅ Fully functional - schema and table creation working
 
 ### Built-in Catalogs
 - **memory**: In-memory tables for testing

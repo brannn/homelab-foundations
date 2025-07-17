@@ -21,8 +21,8 @@ kubectl cluster-info
 - **HAProxy Ingress**: http://10.0.0.245 (HTTP/HTTPS ingress controller)
 - **Pi-hole DNS**: http://10.0.0.249/admin (admin/homelab123)
 - **Grafana**: http://10.0.0.243:3000 (admin/grafana123)
-- **MinIO Console**: https://10.0.0.242:9443 (minio/minio123)
-- **MinIO S3 API**: https://10.0.0.241:443
+- **MinIO Console**: http://10.0.0.242:9090 (HTTP-only)
+- **MinIO S3 API**: http://10.0.0.241:80 (HTTP-only)
 - **Longhorn UI**: http://10.0.0.240 (via LoadBalancer)
 - **Traefik (K3s)**: http://10.0.0.244 (default K3s ingress)
 - **Trino Web UI**: http://10.0.0.246:8080 (no authentication)
@@ -55,11 +55,11 @@ git push origin main
 flux reconcile source git flux-system
 ```
 
-**MinIO** (Helmfile-managed):
+**MinIO** (Helm-managed, HTTP-only):
 ```bash
 # Edit files in minio/ directory, then:
 cd minio/
-helmfile apply
+helm upgrade --install minio-tenant minio/tenant -n minio-tenant -f tenant-values.yaml
 ```
 
 ### Check System Status
@@ -77,8 +77,8 @@ kubectl get svc -A | grep LoadBalancer
 kubectl get volumes -n longhorn-system
 
 # MinIO status
-cd minio && helmfile status
 kubectl get tenant -n minio-tenant
+kubectl get svc -n minio-tenant
 
 # Monitoring status
 kubectl get pods -n monitoring
@@ -190,7 +190,7 @@ flux reconcile kustomization flux-system
 ### MinIO Issues
 ```bash
 # Redeploy MinIO
-cd minio && helmfile apply
+cd minio && helm upgrade --install minio-tenant minio/tenant -n minio-tenant -f tenant-values.yaml
 
 # Check operator logs
 kubectl logs -n minio-operator deployment/minio-operator
@@ -268,7 +268,7 @@ kubectl delete pod minio-tenant-pool-0-0 -n minio-tenant
 ### Redeploy MinIO
 ```bash
 cd minio/
-helmfile apply
+helm upgrade --install minio-tenant minio/tenant -n minio-tenant -f tenant-values.yaml
 ```
 
 ## File Locations

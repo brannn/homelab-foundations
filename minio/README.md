@@ -1,56 +1,56 @@
-# MinIO Deployment with Helmfile
+# MinIO Deployment with Helm
 
-**Version**: 1.0
-**Date**: 2025-07-13
+**Version**: 2.0
+**Date**: 2025-07-17
 **Author**: Community Contributors
 **Status**: Active
 
 ## Overview
 
-MinIO is managed separately from Flux using Helmfile due to its complex multi-component architecture (operator + tenant CRDs) that requires careful dependency ordering. This approach provides reliable deployment while maintaining GitOps principles.
+MinIO is managed separately from Flux using direct Helm commands for reliable deployment. The deployment uses HTTP-only configuration for homelab simplicity, avoiding SSL certificate complexity while maintaining full functionality.
 
 ## Prerequisites
 
-Install Helmfile:
+Ensure MinIO Helm repository is added:
 ```bash
-# macOS
-brew install helmfile
-
-# Linux
-curl -L https://github.com/helmfile/helmfile/releases/latest/download/helmfile_linux_amd64.tar.gz | tar xz
-sudo mv helmfile /usr/local/bin/
+helm repo add minio https://operator.min.io
+helm repo update
 ```
 
 ## Deployment
 
 ```bash
-# Deploy MinIO (operator + tenant)
+# Deploy MinIO tenant (operator must be installed separately)
 cd minio/
-helmfile apply
+helm upgrade --install minio-tenant minio/tenant -n minio-tenant --create-namespace -f tenant-values.yaml
 
 # Check status
-helmfile status
+kubectl get tenant -n minio-tenant
+kubectl get svc -n minio-tenant
 ```
 
 ## Configuration
 
 - **Operator**: Single replica for homelab efficiency
 - **Tenant**: 1 server, 300Gi Longhorn storage
-- **Certificates**: Auto-generated self-signed for HTTPS console
-- **Credentials**: minio / minio123
+- **Protocol**: HTTP-only (requestAutoCert: false)
+- **Credentials**: Configurable in tenant-values.yaml
 
 ## Access
 
 After deployment, MinIO will be available at:
-- **S3 API**: `http://10.0.0.242:80` (or port assigned by MetalLB)
-- **Console**: `https://10.0.0.243:9090` (HTTPS with self-signed cert)
+- **S3 API**: `http://10.0.0.241:80` (HTTP-only)
+- **Console**: `http://10.0.0.242:9090` (HTTP-only)
+- **Ingress Access**:
+  - S3 API: `http://minio.homelab.local`
+  - Console: `http://minio-console.homelab.local`
 
 ## Updates
 
 To update MinIO:
 ```bash
 cd minio/
-helmfile apply
+helm upgrade --install minio-tenant minio/tenant -n minio-tenant -f tenant-values.yaml
 ```
 
 ## Troubleshooting
