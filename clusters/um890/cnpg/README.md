@@ -131,14 +131,16 @@ kubectl get configmap -n cnpg-system
 
 1. **Verify Deployment**: Ensure CNPG operator is running
 2. **Create Backup Credentials**: Setup MinIO backup secret
-3. **Create Templates**: Develop PostgreSQL cluster templates
-4. **Deploy First Cluster**: Use with Temporal or other applications
+3. **Deploy PostgreSQL Clusters**: Use templates for applications
+4. **Monitor and Maintain**: Use operational procedures for ongoing management
 
-## Templates
+## Templates and Documentation
 
-PostgreSQL cluster templates are available in:
-- `docs/templates/postgres-cluster-template.yaml`
-- `examples/applications/database-app/`
+PostgreSQL cluster templates and comprehensive usage guide:
+- **Usage Guide**: `docs/CNPG_USAGE_GUIDE.md` - Complete deployment and operational guide
+- **Templates**: `docs/templates/postgres-cluster-template.yaml` - PostgreSQL cluster template
+- **Examples**: `examples/applications/database-app/` - Working example application
+- **Verification**: `scripts/verify-cnpg.sh` - Deployment verification script
 
 ## Integration
 

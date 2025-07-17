@@ -161,12 +161,15 @@ homelab-foundations/
 ### CloudNativePG (Flux-managed)
 - **Namespace**: cnpg-system
 - **Purpose**: PostgreSQL database management and automation
+- **Version**: v1.24+ (PostgreSQL 17.5)
 - **Architecture**: Co-located PostgreSQL instances with applications
-- **Backup**: Automated backup to MinIO S3-compatible storage
+- **Backup**: Automated backup to MinIO S3-compatible storage with continuous WAL archiving
 - **Monitoring**: Full Prometheus metrics and Grafana dashboards
 - **Resource Usage**: ~384Mi memory for operator infrastructure
-- **Features**: High availability, automated failover, point-in-time recovery
-- **Templates**: Available in docs/templates/ for easy PostgreSQL deployment
+- **Features**: High availability, automated failover, point-in-time recovery, automated schema management
+- **Templates**: Available in `docs/templates/` for easy PostgreSQL deployment
+- **Status**: ✅ Production ready, tested and validated
+- **Usage**: See [PostgreSQL Deployment Guide](#postgresql-deployment-with-cnpg) below
 
 ### Monitoring (Flux-managed)
 - **Namespace**: monitoring
@@ -251,6 +254,129 @@ flux get all
 kubectl get tenant -n minio-tenant
 kubectl get svc -n minio-tenant
 ```
+
+## PostgreSQL Deployment with CNPG
+
+### Overview
+CloudNativePG (CNPG) provides enterprise-grade PostgreSQL management with automated backup, monitoring, and high availability. PostgreSQL instances are deployed co-located with applications following the homelab-foundations pattern.
+
+### Architecture Pattern
+```
+clusters/um890/your-app/
+├── kustomization.yaml           # Main kustomization
+├── postgres-cluster.yaml       # PostgreSQL cluster (co-located)
+├── postgres-secret.yaml        # Database credentials
+├── deployment.yaml             # Application deployment
+├── service.yaml                # Application service
+└── servicemonitor.yaml         # Monitoring configuration
+```
+
+### Quick PostgreSQL Deployment
+
+1. **Copy Templates**:
+   ```bash
+   # Create application directory
+   mkdir -p clusters/um890/your-app
+
+   # Copy PostgreSQL templates
+   cp docs/templates/postgres-cluster-template.yaml clusters/um890/your-app/postgres-cluster.yaml
+   cp docs/templates/postgres-secret-template.yaml clusters/um890/your-app/postgres-secret.yaml
+   ```
+
+2. **Customize Configuration**:
+   ```bash
+   # Edit postgres-cluster.yaml - replace placeholders:
+   # APP_NAME → your-app
+   # APP_NAMESPACE → your-app-namespace
+   # APP_DATABASE → your_database
+   # APP_USER → your_user
+   ```
+
+3. **Create Secure Credentials**:
+   ```bash
+   # Generate secure credentials (never commit to Git!)
+   USERNAME="your_user"
+   PASSWORD="$(openssl rand -base64 32)"
+
+   # Create base64 encoded values
+   USERNAME_B64=$(echo -n "$USERNAME" | base64)
+   PASSWORD_B64=$(echo -n "$PASSWORD" | base64)
+
+   # Update postgres-secret.yaml with base64 values
+   ```
+
+4. **Create Backup Credentials**:
+   ```bash
+   # Create MinIO backup credentials in your application namespace
+   kubectl create secret generic minio-backup-credentials \
+     --from-literal=ACCESS_KEY_ID="minio" \
+     --from-literal=SECRET_ACCESS_KEY="minio123" \
+     --namespace=your-app-namespace
+   ```
+
+5. **Deploy via GitOps**:
+   ```bash
+   # Add to main cluster kustomization
+   echo "  - your-app" >> clusters/um890/kustomization.yaml
+
+   # Commit and deploy
+   git add clusters/um890/your-app/
+   git commit -m "Add PostgreSQL cluster for your-app"
+   git push
+   ```
+
+### Application Integration
+Configure your application to connect to PostgreSQL:
+```yaml
+env:
+- name: DATABASE_URL
+  value: "postgresql://$(DB_USER):$(DB_PASSWORD)@your-app-postgres-rw.your-app-namespace.svc.cluster.local:5432/your_database"
+- name: DB_USER
+  valueFrom:
+    secretKeyRef:
+      name: your-app-postgres-credentials
+      key: username
+- name: DB_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: your-app-postgres-credentials
+      key: password
+```
+
+### Features Available
+- **Automated Backups**: Continuous WAL archiving to MinIO
+- **Point-in-Time Recovery**: Restore to any point in time
+- **Monitoring**: Prometheus metrics and Grafana dashboards
+- **High Availability**: Automated failover and recovery
+- **Resource Scaling**: Adjustable CPU/memory allocation
+- **Security**: TLS encryption and credential management
+
+### Operational Commands
+```bash
+# Check PostgreSQL cluster status
+kubectl get clusters.postgresql.cnpg.io -n your-app-namespace
+
+# Create manual backup
+kubectl apply -f - <<EOF
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: manual-backup
+  namespace: your-app-namespace
+spec:
+  cluster:
+    name: your-app-postgres
+EOF
+
+# Connect to database
+kubectl exec -it your-app-postgres-1 -n your-app-namespace -- psql -U your_user -d your_database
+
+# Scale to zero (saves ~500Mi memory)
+kubectl patch cluster your-app-postgres -n your-app-namespace \
+  --type='merge' -p='{"spec":{"instances":0}}'
+```
+
+For detailed examples, see `examples/applications/database-app/` and `clusters/um890/cnpg/README.md`.
 
 ## Security Considerations
 
