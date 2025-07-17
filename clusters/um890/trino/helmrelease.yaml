@@ -29,23 +29,40 @@ spec:
         mountPath: /etc/ssl/certs/java
         readOnly: false
 
-    # Init container to add MinIO cert to Java trust store
+    # Init containers to add MinIO cert to Java trust store
     initContainers:
-      - name: setup-ssl-trust
-        image: openjdk:11-jre-slim
-        command:
-          - /bin/bash
-          - -c
-          - |
-            cp /opt/java/openjdk/lib/security/cacerts /etc/ssl/certs/java/cacerts
-            keytool -import -trustcacerts -keystore /etc/ssl/certs/java/cacerts -storepass changeit -noprompt -alias minio-ca -file /etc/ssl/certs/minio-ca.crt
-        volumeMounts:
-          - name: minio-ca-cert
-            mountPath: /etc/ssl/certs/minio-ca.crt
-            subPath: minio-ca.crt
-            readOnly: true
-          - name: java-cacerts
-            mountPath: /etc/ssl/certs/java
+      coordinator:
+        - name: setup-ssl-trust
+          image: openjdk:11-jre-slim
+          command:
+            - /bin/bash
+            - -c
+            - |
+              cp /opt/java/openjdk/lib/security/cacerts /etc/ssl/certs/java/cacerts
+              keytool -import -trustcacerts -keystore /etc/ssl/certs/java/cacerts -storepass changeit -noprompt -alias minio-ca -file /etc/ssl/certs/minio-ca.crt
+          volumeMounts:
+            - name: minio-ca-cert
+              mountPath: /etc/ssl/certs/minio-ca.crt
+              subPath: minio-ca.crt
+              readOnly: true
+            - name: java-cacerts
+              mountPath: /etc/ssl/certs/java
+      worker:
+        - name: setup-ssl-trust
+          image: openjdk:11-jre-slim
+          command:
+            - /bin/bash
+            - -c
+            - |
+              cp /opt/java/openjdk/lib/security/cacerts /etc/ssl/certs/java/cacerts
+              keytool -import -trustcacerts -keystore /etc/ssl/certs/java/cacerts -storepass changeit -noprompt -alias minio-ca -file /etc/ssl/certs/minio-ca.crt
+          volumeMounts:
+            - name: minio-ca-cert
+              mountPath: /etc/ssl/certs/minio-ca.crt
+              subPath: minio-ca.crt
+              readOnly: true
+            - name: java-cacerts
+              mountPath: /etc/ssl/certs/java
 
     # Additional volume for Java cacerts
     additionalVolumes:
