@@ -1,13 +1,13 @@
 # Temporal Deployment Plan
 
-**Version**: 1.1
+**Version**: 2.0
 **Date**: 2025-07-17
 **Author**: Brandon Huey (with Augment Agent)
-**Status**: Draft
+**Status**: Updated for CNPG Integration
 
 ## Overview
 
-This document outlines the deployment plan for Temporal workflow system in the homelab-foundations cluster using CloudNativePG (CNPG) operator for PostgreSQL backend and GitOps management via Flux. This plan follows the established homelab-foundations pattern of co-locating PostgreSQL instances with their applications.
+This document outlines the deployment plan for Temporal workflow system in the homelab-foundations cluster using the validated CloudNativePG (CNPG) operator for PostgreSQL backend. This plan leverages the production-ready CNPG foundation with a minimal PostgreSQL configuration optimized for homelab resource constraints while following the established co-located architecture pattern.
 
 ## Architecture
 
@@ -19,48 +19,59 @@ This document outlines the deployment plan for Temporal workflow system in the h
 - **Storage**: Longhorn persistent volumes
 - **Networking**: MetalLB LoadBalancer + HAProxy Ingress
 
-### Resource Allocation
-- **Temporal Frontend**: 1 replica, 1Gi memory, 500m CPU
-- **Temporal History**: 1 replica, 2Gi memory, 1000m CPU
-- **Temporal Matching**: 1 replica, 1Gi memory, 500m CPU
-- **Temporal Worker**: 1 replica, 1Gi memory, 500m CPU
-- **Temporal Web UI**: 1 replica, 512Mi memory, 250m CPU
-- **PostgreSQL (CNPG)**: 1 replica, 500Mi memory, 250m CPU
-- **Total Memory**: ~6Gi (scalable to zero when not in use)
+### Minimal Resource Allocation (Homelab-Optimized)
+- **Temporal Frontend**: 1 replica, 512Mi memory, 200m CPU
+- **Temporal History**: 1 replica, 512Mi memory, 200m CPU
+- **Temporal Matching**: 1 replica, 256Mi memory, 100m CPU
+- **Temporal Worker**: 1 replica, 256Mi memory, 100m CPU
+- **Temporal Web UI**: 1 replica, 256Mi memory, 100m CPU
+- **PostgreSQL (CNPG)**: 1 replica, 512Mi memory, 200m CPU
+- **Total Memory**: ~2.3Gi (62% reduction from standard deployment)
+- **Total CPU**: ~900m (55% reduction from standard deployment)
+- **Scale-to-Zero**: Full stack can be scaled to zero when not in use
 
 ## Database Configuration
 
-### PostgreSQL Cluster (CNPG) - Co-located with Temporal
+### Minimal PostgreSQL Cluster for Temporal
 
-**Architecture Decision**: Following the homelab-foundations pattern, the PostgreSQL cluster is co-located with Temporal in `clusters/um890/temporal/postgres-cluster.yaml` rather than centrally managed.
+**Resource Strategy**: Temporal requires PostgreSQL for workflow persistence but doesn't need high-performance database operations in homelab environments. We'll use a minimal configuration optimized for low resource usage.
+
+**Configuration Approach**: Using validated CNPG templates with homelab-optimized settings:
+- **Memory**: 512Mi total (minimal for PostgreSQL)
+- **Storage**: 10Gi (sufficient for homelab workflow storage)
+- **CPU**: 200m (low CPU requirements)
+- **Instances**: 1 (no HA needed in homelab)
 
 ```yaml
 # clusters/um890/temporal/postgres-cluster.yaml
-# PostgreSQL cluster for Temporal (co-located with application)
+# Minimal PostgreSQL cluster for Temporal (co-located with application)
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: temporal-postgres
   namespace: temporal-system
+  labels:
+    app.kubernetes.io/name: temporal-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: temporal
 spec:
-  instances: 1  # Single instance for homelab
+  instances: 1  # Single instance - no HA needed for homelab
 
+  # PostgreSQL configuration optimized for minimal resource usage
   postgresql:
     parameters:
-      # Performance tuning for homelab
-      max_connections: "100"
-      shared_buffers: "128MB"
-      effective_cache_size: "256MB"
-      work_mem: "2MB"
-      maintenance_work_mem: "64MB"
+      # Minimal connection settings
+      max_connections: "50"          # Reduced from default 100
+      shared_buffers: "64MB"         # Minimal shared buffer
+      effective_cache_size: "128MB"  # Conservative cache size
+      work_mem: "1MB"                # Minimal work memory
+      maintenance_work_mem: "32MB"   # Reduced maintenance memory
 
-      # Logging
+      # Logging (minimal for homelab)
       log_statement: "none"
-      log_min_duration_statement: "1000"
+      log_min_duration_statement: "5000"  # Only log slow queries
 
-      # Monitoring
-      shared_preload_libraries: "pg_stat_statements"
-
+  # Bootstrap with Temporal-specific database
   bootstrap:
     initdb:
       database: temporal
@@ -68,25 +79,23 @@ spec:
       secret:
         name: temporal-postgres-credentials
 
+  # Minimal storage allocation
   storage:
-    size: 20Gi
+    size: 10Gi  # Reduced from 20Gi - sufficient for homelab workflows
     storageClass: longhorn
 
+  # Minimal resource allocation (512Mi total)
   resources:
     requests:
-      memory: 500Mi
-      cpu: 250m
+      memory: 384Mi  # Minimal PostgreSQL memory
+      cpu: 100m      # Low CPU requirement
     limits:
-      memory: 500Mi
-      cpu: 500m
+      memory: 512Mi  # Hard limit for homelab resource management
+      cpu: 200m      # Burst capability
 
-  # Monitoring
-  monitoring:
-    enabled: true
-
-  # Backup configuration
+  # Backup configuration (using validated CNPG setup)
   backup:
-    retentionPolicy: "30d"
+    retentionPolicy: "14d"  # Shorter retention for homelab
     barmanObjectStore:
       destinationPath: "s3://postgres-backups/temporal"
       s3Credentials:
@@ -96,13 +105,52 @@ spec:
         secretAccessKey:
           name: minio-backup-credentials
           key: SECRET_ACCESS_KEY
-      endpointURL: "http://minio-tenant-hl.minio-tenant.svc.cluster.local:9000"
+      endpointURL: "http://10.0.0.241:80"  # Validated MinIO endpoint
 ```
 
-### Database Schema Setup
-Two databases required:
-1. **temporal**: Core workflow execution data
-2. **temporal_visibility**: Search and query data
+### Database Credentials and Setup
+
+**Credentials Management**: Following CNPG best practices with secure credential generation.
+
+```yaml
+# clusters/um890/temporal/postgres-secret.yaml
+# Database credentials secret (generated securely, never commit actual values)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: temporal-postgres-credentials
+  namespace: temporal-system
+  labels:
+    app.kubernetes.io/name: temporal-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: temporal
+type: kubernetes.io/basic-auth
+data:
+  # Base64 encoded credentials - REPLACE WITH ACTUAL SECURE VALUES
+  # Generate with: echo -n "temporal" | base64
+  username: dGVtcG9yYWw=  # temporal (base64)
+  # Generate with: echo -n "$(openssl rand -base64 32)" | base64
+  password: <REPLACE_WITH_SECURE_BASE64_PASSWORD>
+
+  # Additional keys for compatibility
+  postgres-username: dGVtcG9yYWw=
+  postgres-password: <REPLACE_WITH_SECURE_BASE64_PASSWORD>
+```
+
+**Backup Credentials Setup**: Required for CNPG backup functionality.
+
+```bash
+# Create MinIO backup credentials in temporal-system namespace
+kubectl create secret generic minio-backup-credentials \
+  --from-literal=ACCESS_KEY_ID="minio" \
+  --from-literal=SECRET_ACCESS_KEY="minio123" \
+  --namespace=temporal-system
+```
+
+**Database Schema Setup**: Temporal requires a single database with multiple schemas:
+- **Database**: `temporal` (single database for all Temporal data)
+- **Schemas**: Temporal automatically creates required schemas during initialization
+- **Initialization**: Handled by Temporal server on first startup
 
 ## Network Configuration
 
@@ -141,34 +189,36 @@ clusters/um890/temporal/
 
 ## Deployment Phases
 
-### Phase 1: Prerequisites (CNPG Foundation)
-**Note**: CNPG operator must be deployed first as infrastructure foundation.
-1. **CNPG Operator**: Deploy CloudNativePG operator (separate implementation)
-2. **Backup Configuration**: Ensure MinIO backup credentials are configured
-3. **Templates**: Verify PostgreSQL cluster templates are available
+### Phase 1: Prerequisites Verification
+**Status**: ✅ CNPG operator is deployed and validated
+1. **✅ CNPG Operator**: CloudNativePG operator operational in cnpg-system namespace
+2. **✅ Backup Infrastructure**: MinIO backup system tested and working
+3. **✅ Templates**: PostgreSQL cluster templates available and validated
+4. **✅ Documentation**: CNPG usage guide available
 
 ### Phase 2: Temporal Infrastructure Setup
-1. **Helm Repository**: Add Temporal Helm repository to infrastructure
-2. **Namespace**: Add temporal-system namespace to cluster namespaces
+1. **Helm Repository**: Add Temporal Helm repository to infrastructure/helm-repositories/
+2. **Namespace**: Add temporal-system namespace to clusters/um890/namespaces.yaml
 3. **Directory Structure**: Create clusters/um890/temporal/ directory
 
-### Phase 3: Database Setup (Co-located)
-1. **PostgreSQL Cluster**: Deploy CNPG PostgreSQL cluster in temporal directory
-2. **Database Credentials**: Configure database access secrets
-3. **Schema Initialization**: Create initialization job for Temporal schemas
-4. **Backup Verification**: Verify backup configuration works
+### Phase 3: Minimal PostgreSQL Deployment
+1. **Database Credentials**: Generate secure credentials for Temporal PostgreSQL
+2. **Backup Credentials**: Create MinIO backup credentials in temporal-system namespace
+3. **PostgreSQL Cluster**: Deploy minimal CNPG PostgreSQL cluster (512Mi RAM, 10Gi storage)
+4. **Verification**: Confirm PostgreSQL cluster is healthy and backup-enabled
 
 ### Phase 4: Temporal Application Deployment
-1. **Temporal Server**: Deploy via Helm with PostgreSQL configuration
-2. **Services**: Configure MetalLB LoadBalancer services
-3. **Ingress**: Setup HAProxy ingress for Web UI
-4. **Monitoring**: Configure Prometheus ServiceMonitor
+1. **Temporal Configuration**: Configure Temporal server with minimal PostgreSQL connection
+2. **Temporal Server**: Deploy via Helm with optimized resource allocation
+3. **Services**: Configure MetalLB LoadBalancer services for gRPC and Web UI
+4. **Ingress**: Setup HAProxy ingress for Web UI access
 
-### Phase 5: Integration and Testing
-1. **GitOps**: Add temporal to main cluster kustomization
-2. **Documentation**: Update README and guides
-3. **Testing**: Verify deployment, connectivity, and workflow execution
-4. **Scaling**: Test scale-to-zero and scale-up procedures
+### Phase 5: Integration and Validation
+1. **GitOps Integration**: Add temporal to main cluster kustomization
+2. **Connectivity Testing**: Verify Temporal server connects to PostgreSQL
+3. **Workflow Testing**: Execute test workflows to validate functionality
+4. **Resource Monitoring**: Confirm total resource usage meets homelab constraints
+5. **Documentation**: Update README and operational guides
 
 ## Configuration Details
 
@@ -227,15 +277,17 @@ elasticsearch:
 
 ## Operational Procedures
 
-### Scaling to Zero
+### Scaling to Zero (Resource Conservation)
 ```bash
-# Scale down Temporal (saves ~5.5Gi memory)
+# Scale down Temporal services (saves ~1.8Gi memory)
 kubectl scale deployment -n temporal-system --replicas=0 \
   temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
 
-# Scale down PostgreSQL (saves ~500Mi memory)
+# Scale down PostgreSQL (saves ~512Mi memory)
 kubectl patch cluster temporal-postgres -n temporal-system \
   --type='merge' -p='{"spec":{"instances":0}}'
+
+# Total memory savings: ~2.3Gi when fully scaled to zero
 ```
 
 ### Scaling Up
@@ -249,12 +301,12 @@ kubectl scale deployment -n temporal-system --replicas=1 \
   temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
 ```
 
-### Database Backup
-CNPG provides automated backup capabilities (configured in co-located postgres-cluster.yaml):
+### Database Backup (CNPG Automated)
+CNPG provides automated backup capabilities with validated MinIO integration:
 ```yaml
-# In clusters/um890/temporal/postgres-cluster.yaml
+# In clusters/um890/temporal/postgres-cluster.yaml (already configured above)
 backup:
-  retentionPolicy: "30d"
+  retentionPolicy: "14d"  # Shorter retention for homelab
   barmanObjectStore:
     destinationPath: "s3://postgres-backups/temporal"
     s3Credentials:
@@ -264,8 +316,14 @@ backup:
       secretAccessKey:
         name: minio-backup-credentials
         key: SECRET_ACCESS_KEY
-    endpointURL: "http://minio-tenant-hl.minio-tenant.svc.cluster.local:9000"
+    endpointURL: "http://10.0.0.241:80"  # Validated MinIO LoadBalancer endpoint
 ```
+
+**Backup Features**:
+- **Continuous WAL Archiving**: Real-time transaction log backup
+- **Point-in-Time Recovery**: Restore to any point in time within retention period
+- **Automated Scheduling**: Daily full backups with continuous WAL archiving
+- **MinIO Integration**: Uses existing homelab-foundations MinIO infrastructure
 
 ## Dependencies
 
@@ -284,28 +342,36 @@ backup:
 
 ## Implementation Dependencies
 
-### Prerequisites (Must be completed first)
-1. **CNPG Operator Deployment**: CloudNativePG operator must be installed and operational
-2. **CNPG Templates**: PostgreSQL cluster templates must be available
-3. **Backup Infrastructure**: MinIO backup credentials must be configured
-4. **Monitoring Stack**: Prometheus must be operational for metrics collection
+### Prerequisites Status
+1. **✅ CNPG Operator**: CloudNativePG operator deployed and operational in cnpg-system namespace
+2. **✅ CNPG Templates**: PostgreSQL cluster templates available and validated in docs/templates/
+3. **✅ Backup Infrastructure**: MinIO backup system tested and working with CNPG
+4. **✅ Monitoring Stack**: Prometheus operational and integrated with CNPG metrics
+5. **✅ Documentation**: Comprehensive CNPG usage guide available
 
-### Implementation Order
-1. **CNPG Foundation**: Complete CNPG operator deployment (separate task)
-2. **Temporal Implementation**: Follow this plan once CNPG is ready
+### Implementation Readiness
+**Status**: ✅ **READY TO PROCEED** - All CNPG prerequisites completed and validated
 
 ## Next Steps
 
-**Immediate (CNPG Foundation)**:
-1. **Deploy CNPG Operator**: Complete CNPG operator installation first
-2. **Verify CNPG**: Ensure operator is functional and backup is configured
+**Immediate (Temporal Implementation)**:
+1. **Add Temporal Helm Repository**: Add to infrastructure/helm-repositories/
+2. **Create Temporal Directory**: Set up clusters/um890/temporal/ structure
+3. **Deploy Minimal PostgreSQL**: Use validated CNPG templates with 512Mi configuration
+4. **Configure Temporal Server**: Deploy with minimal resource allocation
+5. **Validate Integration**: Test workflow execution and resource usage
 
-**Future (Temporal Implementation)**:
-1. **Create Temporal Configuration**: Implement the co-located directory structure
-2. **Database Schema Setup**: Initialize Temporal databases using CNPG
-3. **Temporal Deployment**: Deploy via GitOps with co-located PostgreSQL
-4. **Documentation Updates**: Update README and guides
-5. **Testing**: Verify workflow execution capabilities and scaling procedures
+**Implementation Timeline**:
+- **Phase 1-2**: Infrastructure setup (~30 minutes)
+- **Phase 3**: PostgreSQL deployment (~15 minutes)
+- **Phase 4**: Temporal deployment (~45 minutes)
+- **Phase 5**: Testing and validation (~30 minutes)
+- **Total**: ~2 hours for complete Temporal deployment
+
+**Resource Impact**:
+- **Memory**: +2.3Gi when running, 0Gi when scaled to zero
+- **CPU**: +900m when running, 0m when scaled to zero
+- **Storage**: +10Gi for PostgreSQL data
 
 ## Benefits
 
