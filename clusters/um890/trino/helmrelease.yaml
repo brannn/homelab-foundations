@@ -19,12 +19,12 @@ spec:
       tag: "476"  # Use specific version for stability
 
     # Mount MinIO certificate for AWS SDK
-    additionalVolumes:
+    extraVolumes:
       - name: minio-ca-cert
         configMap:
           name: minio-ca-cert
 
-    additionalVolumeMounts:
+    extraVolumeMounts:
       - name: minio-ca-cert
         mountPath: /etc/ssl/certs/minio.crt
         subPath: minio.crt
