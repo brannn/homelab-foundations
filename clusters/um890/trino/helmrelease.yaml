@@ -17,6 +17,43 @@ spec:
     # Trino configuration for homelab with Iceberg integration
     image:
       tag: "476"  # Use specific version for stability
+
+    # Mount MinIO certificate for SSL trust
+
+    additionalVolumeMounts:
+      - name: minio-ca-cert
+        mountPath: /etc/ssl/certs/minio-ca.crt
+        subPath: minio-ca.crt
+        readOnly: true
+      - name: java-cacerts
+        mountPath: /etc/ssl/certs/java
+        readOnly: false
+
+    # Init container to add MinIO cert to Java trust store
+    initContainers:
+      - name: setup-ssl-trust
+        image: openjdk:11-jre-slim
+        command:
+          - /bin/bash
+          - -c
+          - |
+            cp /opt/java/openjdk/lib/security/cacerts /etc/ssl/certs/java/cacerts
+            keytool -import -trustcacerts -keystore /etc/ssl/certs/java/cacerts -storepass changeit -noprompt -alias minio-ca -file /etc/ssl/certs/minio-ca.crt
+        volumeMounts:
+          - name: minio-ca-cert
+            mountPath: /etc/ssl/certs/minio-ca.crt
+            subPath: minio-ca.crt
+            readOnly: true
+          - name: java-cacerts
+            mountPath: /etc/ssl/certs/java
+
+    # Additional volume for Java cacerts
+    additionalVolumes:
+      - name: minio-ca-cert
+        configMap:
+          name: minio-ca-cert
+      - name: java-cacerts
+        emptyDir: {}
     
     # Server configuration
     server:
@@ -34,6 +71,11 @@ spec:
     coordinator:
       jvm:
         maxHeapSize: "3g"  # Increased for better performance
+        gcMethod:
+          type: "G1GC"
+        additionalJvmArgs:
+          - "-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts"
+          - "-Djavax.net.ssl.trustStorePassword=changeit"
       config:
         query:
           maxMemoryPerNode: "2GB"  # Increased with more headroom
@@ -62,6 +104,11 @@ spec:
     worker:
       jvm:
         maxHeapSize: "5g"  # Increased for better performance
+        gcMethod:
+          type: "G1GC"
+        additionalJvmArgs:
+          - "-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts"
+          - "-Djavax.net.ssl.trustStorePassword=changeit"
       config:
         query:
           maxMemoryPerNode: "3.5GB"  # Increased with proper headroom
