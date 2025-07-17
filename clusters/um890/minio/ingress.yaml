@@ -5,12 +5,12 @@ metadata:
   namespace: minio-tenant
   annotations:
     kubernetes.io/ingress.class: haproxy
-    haproxy.org/ssl-redirect: "false"  # MinIO console uses HTTP
+    haproxy.org/ssl-redirect: "false"
     haproxy.org/timeout-http-request: "30s"
     haproxy.org/timeout-connect: "10s"
     haproxy.org/timeout-client: "60s"
     haproxy.org/timeout-server: "60s"
-    haproxy.org/backend-protocol: "http"  # Backend uses HTTP
+    haproxy.org/backend-protocol: "http"
   labels:
     app.kubernetes.io/name: minio
     app.kubernetes.io/component: console
@@ -35,12 +35,12 @@ metadata:
   namespace: minio-tenant
   annotations:
     kubernetes.io/ingress.class: haproxy
-    haproxy.org/ssl-redirect: "false"  # MinIO S3 API uses HTTP
+    haproxy.org/ssl-redirect: "false"
     haproxy.org/timeout-http-request: "30s"
     haproxy.org/timeout-connect: "10s"
-    haproxy.org/timeout-client: "300s"  # Longer timeout for large uploads
+    haproxy.org/timeout-client: "300s"
     haproxy.org/timeout-server: "300s"
-    haproxy.org/backend-protocol: "http"  # Backend uses HTTP
+    haproxy.org/backend-protocol: "http"
   labels:
     app.kubernetes.io/name: minio
     app.kubernetes.io/component: s3-api
