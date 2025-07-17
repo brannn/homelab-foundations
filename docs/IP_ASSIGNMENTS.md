@@ -23,7 +23,7 @@ This document defines the permanent IP address assignments for all services in t
 - **10.0.0.247**: Iceberg REST Catalog (http://10.0.0.247:8181)
 - **10.0.0.248**: ClickHouse Database (http://10.0.0.248:8123)
 - **10.0.0.249**: Pi-hole DNS Server (http://10.0.0.249:80, dns://10.0.0.249:53)
-- **10.0.0.250**: Temporal Workflow System (http://10.0.0.250:8080, grpc://10.0.0.250:7233)
+- **10.0.0.250**: Temporal Workflow System (http://10.0.0.250:8080, grpc://10.0.0.250:7233, http://temporal.homelab.local)
 
 ## MetalLB Configuration
 
@@ -52,7 +52,7 @@ The MetalLB configuration uses dedicated pools for different service categories:
 - **10.0.0.249**: Pi-hole DNS server
 
 #### **Workflow Pool (10.0.0.250)**
-- **10.0.0.250**: Temporal workflow system
+- **10.0.0.250**: Temporal workflow system (gRPC + Web UI)
 
 ## Service Assignments
 
@@ -136,6 +136,22 @@ The MetalLB configuration uses dedicated pools for different service categories:
 - **Purpose**: Local DNS resolution for .homelab.local domains
 - **Configuration**: `clusters/um890/dns/`
 
+### **Workflow Services**
+
+#### **Temporal Workflow System**
+- **IP**: 10.0.0.250 (FIXED)
+- **Pool**: workflow-pool
+- **Services**:
+  - Frontend gRPC: grpc://10.0.0.250:7233
+  - Web UI: http://10.0.0.250:8080
+- **Ingress Access**: http://temporal.homelab.local
+- **Database**: PostgreSQL via CNPG (temporal-postgres cluster)
+- **Storage**: 10Gi Longhorn persistent volume
+- **Backup**: Automated to MinIO with 14-day retention
+- **Resource Usage**: ~551Mi memory (homelab-optimized)
+- **Scale-to-Zero**: Supports full stack scaling for resource conservation
+- **Configuration**: `clusters/um890/temporal/`
+
 ## Implementation Details
 
 ### **MetalLB Pool Configuration**
@@ -168,6 +184,16 @@ metadata:
   annotations:
     metallb.universe.tf/loadBalancerIPs: "10.0.0.248"
     metallb.universe.tf/address-pool: "analytics-pool"
+```
+
+#### **Temporal Shared IP Services**
+```yaml
+# clusters/um890/temporal/services.yaml
+metadata:
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "10.0.0.250"
+    metallb.universe.tf/allow-shared-ip: "temporal-shared"
+# Multiple services can share the same IP on different ports
 ```
 
 ## Benefits of Fixed IP Assignments

@@ -28,6 +28,8 @@ kubectl cluster-info
 - **Trino Web UI**: http://10.0.0.246:8080 (no authentication)
 - **Iceberg REST API**: http://10.0.0.247:8181 (catalog management)
 - **ClickHouse**: http://10.0.0.248:8123 (HTTP interface)
+- **Temporal Web UI**: http://10.0.0.250:8080 (workflow monitoring)
+- **Temporal gRPC**: grpc://10.0.0.250:7233 (client connections)
 - **NATS Monitoring**: http://nats.homelab.local (metrics and health)
 
 ### Hostname Access (via Pi-hole DNS)
@@ -38,6 +40,7 @@ Configure Pi-hole (10.0.0.249) as secondary DNS server for hostname resolution:
 - **Iceberg REST**: http://iceberg.homelab.local
 - **Longhorn**: http://longhorn.homelab.local
 - **NATS**: http://nats.homelab.local
+- **Temporal**: http://temporal.homelab.local
 - **MinIO Console**: http://minio-console.homelab.local
 - **MinIO S3**: http://minio.homelab.local
 - **Pi-hole**: http://pihole.homelab.local/admin
@@ -171,6 +174,49 @@ kubectl exec -n nats $NATS_BOX -- nats --server nats://nats:4222 stream info iot
 
 # View metrics
 curl http://10.0.0.248:8222/varz
+```
+
+## Temporal Workflow System
+
+### Quick Access
+```bash
+# Check Temporal services
+kubectl get pods -n temporal-system
+
+# Check PostgreSQL cluster
+kubectl get clusters.postgresql.cnpg.io -n temporal-system
+
+# Check LoadBalancer services
+kubectl get svc -n temporal-system | grep LoadBalancer
+```
+
+### Essential Commands
+```bash
+# Scale to zero (save ~2.3Gi memory)
+kubectl scale deployment -n temporal-system --replicas=0 \
+  temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
+
+# Scale up from zero
+kubectl scale deployment -n temporal-system --replicas=1 \
+  temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
+
+# Connect to PostgreSQL
+kubectl exec -it temporal-postgres-1 -n temporal-system -- psql -U temporal -d temporal
+
+# Check backup status
+kubectl get backups -n temporal-system
+```
+
+### Monitoring
+```bash
+# Check resource usage
+kubectl top pods -n temporal-system
+
+# View service logs
+kubectl logs -n temporal-system -l app.kubernetes.io/name=temporal
+
+# Test connectivity
+curl -s http://10.0.0.250:8080 | head -5
 ```
 
 ## Common Fixes

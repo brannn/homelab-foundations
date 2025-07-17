@@ -7,7 +7,7 @@
 
 ## Overview
 
-This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, Pi-hole DNS for local hostname resolution, comprehensive monitoring with Prometheus + Grafana, analytics with Trino + Iceberg, real-time analytics with ClickHouse, and IoT messaging with NATS + JetStream.
+This guide will get you from zero to a fully functional homelab in under 30 minutes. You'll have Kubernetes with foundation storage (Longhorn CSI + MinIO), GitOps management (Flux), MetalLB load balancing, HAProxy ingress, Pi-hole DNS for local hostname resolution, comprehensive monitoring with Prometheus + Grafana, analytics with Trino + Iceberg, real-time analytics with ClickHouse, IoT messaging with NATS + JetStream, and workflow orchestration with Temporal.
 
 **Architecture**: Core storage components are managed via Helmfile for high availability, while other services use GitOps (Flux) for automated deployment and management.
 
@@ -218,6 +218,12 @@ CREATE TABLE homelab_test.sensor_data (
 ORDER BY (sensor_id, timestamp);
 ```
 
+### 4.8 Access Temporal Workflow System
+1. Find the Temporal Web UI IP: `kubectl get svc temporal-web-lb -n temporal-system`
+2. Open browser to: `http://TEMPORAL_IP:8080` (Web UI)
+3. Or access via ingress: `http://temporal.homelab.local`
+4. Verify the system is running (you should see the Temporal dashboard)
+
 ## Step 5: Test GitOps Workflow
 
 ### 5.1 Make a Change
@@ -255,6 +261,7 @@ flux get all
 - **Trino + Iceberg** providing analytics engine and data lake capabilities
 - **ClickHouse** providing real-time analytics database for IoT data processing
 - **NATS + JetStream** providing high-performance messaging for IoT data streams
+- **Temporal** providing workflow orchestration platform for durable execution
 
 ### GitOps Workflow
 - **Flux** automatically syncs infrastructure changes from Git
@@ -272,6 +279,7 @@ flux get all
 - **ClickHouse Play**: Interactive SQL editor for real-time analytics
 - **ClickHouse Dashboard**: System monitoring and performance metrics
 - **NATS**: High-performance messaging system for IoT data streams
+- **Temporal Web UI**: Workflow monitoring and debugging interface
 - **Kubernetes API**: Full cluster management via kubectl
 
 ## Next Steps

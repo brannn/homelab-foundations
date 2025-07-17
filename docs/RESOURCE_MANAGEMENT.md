@@ -25,6 +25,7 @@ This guide covers resource management strategies for the homelab-foundations env
 - **ClickHouse**: Analytics database - 2Gi memory when running
 - **Trino**: Query engine - ~4Gi memory total (coordinator + worker)
 - **NATS**: Messaging system - 512Mi memory + JetStream storage
+- **Temporal**: Workflow system - ~2.3Gi memory when running
 - **Monitoring Stack**: Prometheus (~2Gi) + Grafana (~512Mi)
 
 ## Scaling Commands by Service
@@ -146,6 +147,43 @@ kubectl scale deployment grafana --replicas=1 -n monitoring
 kubectl wait --for=condition=available deployment/grafana -n monitoring --timeout=120s
 ```
 
+### Temporal Workflow System
+
+**Scale Down**:
+```bash
+# Scale down Temporal services (saves ~1.8Gi memory)
+kubectl scale deployment -n temporal-system --replicas=0 \
+  temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
+
+# Scale down PostgreSQL (saves ~512Mi memory)
+kubectl patch cluster temporal-postgres -n temporal-system \
+  --type='merge' -p='{"spec":{"instances":0}}'
+
+# Verify scaled down
+kubectl get pods -n temporal-system
+```
+
+**Scale Up**:
+```bash
+# Scale up PostgreSQL first (required dependency)
+kubectl patch cluster temporal-postgres -n temporal-system \
+  --type='merge' -p='{"spec":{"instances":1}}'
+
+# Wait for PostgreSQL to be ready
+kubectl wait --for=condition=ready pod -l cnpg.io/cluster=temporal-postgres -n temporal-system --timeout=180s
+
+# Scale up Temporal services
+kubectl scale deployment -n temporal-system --replicas=1 \
+  temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
+
+# Wait for services to be ready
+kubectl wait --for=condition=available deployment/temporal-frontend -n temporal-system --timeout=120s
+kubectl wait --for=condition=available deployment/temporal-web -n temporal-system --timeout=120s
+
+# Test connectivity
+curl -s http://10.0.0.250:8080 | head -5
+```
+
 ## Automation Scripts
 
 ### Complete Scale Down Script
@@ -168,6 +206,13 @@ kubectl scale deployment trino-worker --replicas=0 -n iceberg-system
 # Scale down messaging
 echo "Scaling down NATS..."
 kubectl scale statefulset nats --replicas=0 -n nats
+
+# Scale down workflow system
+echo "Scaling down Temporal..."
+kubectl scale deployment -n temporal-system --replicas=0 \
+  temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
+kubectl patch cluster temporal-postgres -n temporal-system \
+  --type='merge' -p='{"spec":{"instances":0}}'
 
 # Scale down monitoring (optional - keep Prometheus for basic monitoring)
 echo "Scaling down Grafana..."
@@ -200,6 +245,15 @@ echo "Scaling up NATS..."
 kubectl scale statefulset nats --replicas=1 -n nats
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=nats -n nats --timeout=120s
 
+# Scale up workflow system
+echo "Scaling up Temporal..."
+kubectl patch cluster temporal-postgres -n temporal-system \
+  --type='merge' -p='{"spec":{"instances":1}}'
+kubectl wait --for=condition=ready pod -l cnpg.io/cluster=temporal-postgres -n temporal-system --timeout=180s
+kubectl scale deployment -n temporal-system --replicas=1 \
+  temporal-frontend temporal-history temporal-matching temporal-worker temporal-web
+kubectl wait --for=condition=available deployment/temporal-web -n temporal-system --timeout=120s
+
 # Scale up analytics services
 echo "Scaling up ClickHouse..."
 kubectl scale statefulset chi-homelab-clickhouse-homelab-cluster-0-0 --replicas=1 -n clickhouse
@@ -226,10 +280,14 @@ kubectl exec -n clickhouse chi-homelab-clickhouse-homelab-cluster-0-0-0 -- click
 echo "Testing Trino..."
 kubectl exec -n iceberg-system deployment/trino-coordinator -- trino --execute "SELECT 'Trino OK' as status" 2>/dev/null || echo "Trino not ready yet"
 
+echo "Testing Temporal..."
+curl -s http://10.0.0.250:8080 | head -1 | grep -q "html" && echo "Temporal OK" || echo "Temporal not ready yet"
+
 echo "Service URLs:"
 echo "ClickHouse Play: http://10.0.0.248:8123/play"
 echo "ClickHouse Dashboard: http://10.0.0.248:8123/dashboard"
 echo "Trino UI: http://10.0.0.246:8080"
+echo "Temporal Web UI: http://10.0.0.250:8080"
 echo "Grafana: http://10.0.0.241:3000"
 
 echo "Current resource usage:"
@@ -246,8 +304,9 @@ kubectl top nodes
 
 # Pod resource usage by namespace
 kubectl top pods -n clickhouse
-kubectl top pods -n iceberg-system  
+kubectl top pods -n iceberg-system
 kubectl top pods -n nats
+kubectl top pods -n temporal-system
 kubectl top pods -n monitoring
 
 # All pods sorted by resource usage
@@ -274,15 +333,17 @@ kubectl get pvc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace
 
 **Scale Down Order** (reverse dependency):
 1. Analytics services (ClickHouse, Trino)
-2. Messaging services (NATS)
-3. Monitoring services (Grafana, optionally Prometheus)
-4. Never scale: Foundation services (Longhorn, MinIO, MetalLB, HAProxy)
+2. Workflow services (Temporal)
+3. Messaging services (NATS)
+4. Monitoring services (Grafana, optionally Prometheus)
+5. Never scale: Foundation services (Longhorn, MinIO, MetalLB, HAProxy)
 
 **Scale Up Order** (dependency order):
 1. Foundation services (should already be running)
 2. Messaging services (NATS)
-3. Analytics services (ClickHouse, Trino)
-4. Monitoring services (Prometheus, Grafana)
+3. Workflow services (Temporal)
+4. Analytics services (ClickHouse, Trino)
+5. Monitoring services (Prometheus, Grafana)
 
 ### Resource Conservation Tips
 
@@ -295,7 +356,8 @@ kubectl get pvc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace
 ### Startup Time Expectations
 
 - **NATS**: 10-20 seconds
-- **ClickHouse**: 30-60 seconds  
+- **Temporal**: 60-120 seconds (PostgreSQL + services)
+- **ClickHouse**: 30-60 seconds
 - **Trino**: 20-30 seconds (coordinator), 15-25 seconds (worker)
 - **Grafana**: 15-30 seconds
 - **Prometheus**: 30-90 seconds (depends on data volume)
@@ -304,7 +366,8 @@ kubectl get pvc --all-namespaces -o custom-columns=NAMESPACE:.metadata.namespace
 
 All services maintain data persistence when scaled to zero:
 - **ClickHouse**: Data in Longhorn persistent volumes
-- **NATS**: JetStream data in persistent volumes  
+- **NATS**: JetStream data in persistent volumes
+- **Temporal**: Workflow data and history in PostgreSQL persistent volumes
 - **Trino**: Stateless (no data stored)
 - **Prometheus**: Metrics data in persistent volumes
 - **Grafana**: Dashboards and settings in persistent volumes
