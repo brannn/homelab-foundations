@@ -16,6 +16,7 @@ data:
     address=/nats.homelab.local/10.0.0.245
     address=/minio-console.homelab.local/10.0.0.245
     address=/minio.homelab.local/10.0.0.245
-    
+    address=/temporal.homelab.local/10.0.0.245
+
     # Pi-hole itself
     address=/pihole.homelab.local/10.0.0.249
