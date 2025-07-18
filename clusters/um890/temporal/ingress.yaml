@@ -5,7 +5,8 @@ metadata:
   namespace: temporal-system
   annotations:
     kubernetes.io/ingress.class: haproxy
-    haproxy.org/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: selfsigned-issuer
+    haproxy.org/ssl-redirect: "false"  # Allow HTTP for homelab
     haproxy.org/timeout-http-request: "30s"
     haproxy.org/timeout-connect: "10s"
     haproxy.org/timeout-client: "60s"
@@ -16,6 +17,10 @@ metadata:
     app.kubernetes.io/component: web
     app.kubernetes.io/service: ingress
 spec:
+  tls:
+    - hosts:
+        - temporal.homelab.local
+      secretName: temporal-tls
   rules:
     - host: temporal.homelab.local
       http:
