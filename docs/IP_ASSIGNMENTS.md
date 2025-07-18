@@ -23,7 +23,7 @@ This document defines the permanent IP address assignments for all services in t
 - **10.0.0.247**: Iceberg REST Catalog (http://10.0.0.247:8181)
 - **10.0.0.248**: ClickHouse Database (http://10.0.0.248:8123)
 - **10.0.0.249**: Pi-hole DNS Server (http://10.0.0.249:80, dns://10.0.0.249:53)
-- **10.0.0.250**: Temporal Workflow System (http://10.0.0.250:8080, grpc://10.0.0.250:7233, http://temporal.homelab.local)
+- **10.0.0.250**: Temporal Workflow System (http://10.0.0.250:8080, grpc://10.0.0.250:7233, http://temporal.homelab.local, https://temporal.homelab.local)
 
 ## MetalLB Configuration
 
@@ -144,7 +144,9 @@ The MetalLB configuration uses dedicated pools for different service categories:
 - **Services**:
   - Frontend gRPC: grpc://10.0.0.250:7233
   - Web UI: http://10.0.0.250:8080
-- **Ingress Access**: http://temporal.homelab.local
+- **Ingress Access**:
+  - HTTP: http://temporal.homelab.local
+  - HTTPS: https://temporal.homelab.local (self-signed certificate)
 - **Database**: PostgreSQL via CNPG (temporal-postgres cluster)
 - **Storage**: 10Gi Longhorn persistent volume
 - **Backup**: Automated to MinIO with 14-day retention
