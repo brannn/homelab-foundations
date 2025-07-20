@@ -198,9 +198,11 @@ homelab-foundations/
 - **Purpose**: ACID transactions, schema evolution, time travel queries
 - **Memory**: 512Mi allocation
 - **API Endpoint**: http://10.0.0.247:8181
+- **Metadata Backend**: PostgreSQL via CNPG (iceberg-postgres cluster)
 - **Storage Backend**: MinIO S3 (iceberg bucket)
-- **Credentials**: Kubernetes secret integration with MinIO
+- **Concurrency**: Supports multiple simultaneous write operations
 - **Features**: Table metadata management, schema versioning, partition evolution
+- **Status**: ✅ Production ready with PostgreSQL backend for high concurrency
 
 ### NATS Messaging System (Flux-managed)
 - **Namespace**: nats

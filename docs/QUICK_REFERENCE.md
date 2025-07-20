@@ -94,6 +94,10 @@ kubectl get clusterissuers
 # HAProxy ingress status
 kubectl get pods -n haproxy-controller
 kubectl get svc -n haproxy-controller
+
+# Iceberg PostgreSQL backend status
+kubectl get clusters.postgresql.cnpg.io -n iceberg-system
+kubectl get pods -n iceberg-system
 ```
 
 ## Trino Analytics
@@ -138,6 +142,24 @@ curl -X POST http://10.0.0.246:8080/v1/statement \
   -H "Content-Type: application/json" \
   -H "X-Trino-User: admin" \
   -d '{"query":"SHOW CATALOGS"}'
+
+# Check Iceberg REST Catalog
+curl -s http://10.0.0.247:8181/v1/config
+```
+
+### PostgreSQL Backend Operations
+```bash
+# Check PostgreSQL cluster status
+kubectl get clusters.postgresql.cnpg.io -n iceberg-system
+
+# Connect to Iceberg metadata database
+kubectl exec -it iceberg-postgres-1 -n iceberg-system -- psql -U postgres -d iceberg_catalog
+
+# Check Iceberg metadata tables
+kubectl exec -it iceberg-postgres-1 -n iceberg-system -- psql -U postgres -d iceberg_catalog -c "\dt"
+
+# Monitor PostgreSQL resource usage
+kubectl top pods -n iceberg-system -l cnpg.io/cluster=iceberg-postgres
 ```
 
 ## NATS + JetStream Messaging

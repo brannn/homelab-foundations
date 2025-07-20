@@ -21,6 +21,7 @@ This guide covers the Trino distributed SQL query engine deployment in homelab-f
 - **Trino Coordinator**: Query planning, client connections, metadata
 - **Trino Worker**: Query execution, data processing
 - **Iceberg REST Catalog**: Table metadata, schema evolution, ACID transactions
+- **PostgreSQL Backend**: CNPG-managed database for Iceberg metadata (concurrent-safe)
 - **MinIO Integration**: S3-compatible storage backend (HTTP-only)
 
 ## Access Information
@@ -50,14 +51,50 @@ chmod +x trino
 ### Iceberg Catalog
 - **Name**: `iceberg`
 - **Type**: Apache Iceberg with REST catalog
+- **Metadata Backend**: PostgreSQL via CNPG (concurrent-safe)
 - **Storage**: MinIO S3 backend (HTTP-only for homelab simplicity)
 - **Features**: ACID transactions, schema evolution, time travel
-- **Status**: ✅ Fully functional - schema and table creation working
+- **Concurrency**: Supports multiple simultaneous write operations
+- **Status**: ✅ Production ready with PostgreSQL backend for high concurrency
 
 ### Built-in Catalogs
 - **memory**: In-memory tables for testing
 - **tpch**: TPC-H benchmark data
 - **tpcds**: TPC-DS benchmark data
+
+## PostgreSQL Backend Architecture
+
+### Overview
+The Iceberg REST Catalog uses a PostgreSQL database backend managed by CloudNativePG (CNPG) to store table metadata. This architecture replaces the default SQLite backend to support high-concurrency workloads.
+
+### Benefits
+- **Concurrent Operations**: Supports multiple simultaneous read/write operations
+- **ACID Compliance**: Full transactional support for metadata operations
+- **Scalability**: No single-writer bottleneck like SQLite
+- **Reliability**: Automated backups and point-in-time recovery via CNPG
+- **Monitoring**: Full PostgreSQL metrics integration with Prometheus/Grafana
+
+### Components
+- **PostgreSQL Cluster**: `iceberg-postgres` (single-node, 512Mi memory)
+- **Database**: `iceberg_catalog`
+- **User**: `iceberg_user`
+- **Backup**: Automated to MinIO S3 storage
+- **Connection**: `jdbc:postgresql://iceberg-postgres-rw.iceberg-system.svc.cluster.local:5432/iceberg_catalog`
+
+### Operational Commands
+```bash
+# Check PostgreSQL cluster status
+kubectl get clusters.postgresql.cnpg.io -n iceberg-system
+
+# Connect to database
+kubectl exec -it iceberg-postgres-1 -n iceberg-system -- psql -U postgres -d iceberg_catalog
+
+# Check Iceberg metadata tables
+kubectl exec -it iceberg-postgres-1 -n iceberg-system -- psql -U postgres -d iceberg_catalog -c "\dt"
+
+# Monitor resource usage
+kubectl top pods -n iceberg-system
+```
 
 ## Getting Started Examples
 

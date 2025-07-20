@@ -4,13 +4,35 @@
 
 This deployment provides a complete Trino cluster with Apache Iceberg integration for the homelab-foundations environment. It includes:
 
-- **Trino Coordinator**: Query planning and coordination (2GB RAM)
-- **Trino Worker**: Query execution (4GB RAM)  
-- **Iceberg REST Catalog**: Metadata management (512MB RAM)
+- **Trino Coordinator**: Query planning and coordination (4Gi RAM)
+- **Trino Worker**: Query execution (6Gi RAM)
+- **Iceberg REST Catalog**: Metadata management (512Mi RAM)
+- **PostgreSQL Backend**: CNPG-managed database for concurrent metadata operations (512Mi RAM)
 - **MinIO Integration**: S3-compatible storage backend (HTTP-only)
 - **Monitoring**: Prometheus metrics and Grafana dashboards
 
 ## Architecture
+
+### PostgreSQL Backend for Iceberg Metadata
+
+The Iceberg REST Catalog uses a PostgreSQL database backend managed by CloudNativePG (CNPG) instead of the default SQLite. This provides:
+
+**Benefits:**
+- **High Concurrency**: Supports multiple simultaneous write operations (tested with 15+ concurrent operations)
+- **ACID Compliance**: Full transactional support for metadata operations
+- **No Single-Writer Bottleneck**: Unlike SQLite, PostgreSQL supports concurrent writers
+- **Enterprise Features**: Automated backups, monitoring, and point-in-time recovery
+
+**Components:**
+- **PostgreSQL Cluster**: `iceberg-postgres` (single-node for homelab)
+- **Database**: `iceberg_catalog`
+- **Memory**: 512Mi allocation
+- **Storage**: 10Gi Longhorn-backed persistent volume
+- **Backup**: Automated to MinIO S3 storage
+
+**Connection Details:**
+- **Service**: `iceberg-postgres-rw.iceberg-system.svc.cluster.local:5432`
+- **JDBC URL**: `jdbc:postgresql://iceberg-postgres-rw.iceberg-system.svc.cluster.local:5432/iceberg_catalog`
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -37,15 +59,19 @@ This deployment provides a complete Trino cluster with Apache Iceberg integratio
 
 ### Iceberg REST Catalog
 - **Purpose**: Manages Iceberg table metadata
-- **Storage**: Uses MinIO S3 backend for table metadata and data
-- **Memory**: 512MB RAM with 512MB JVM heap
+- **Metadata Backend**: PostgreSQL via CNPG for concurrent operations
+- **Storage**: Uses MinIO S3 backend for table data
+- **Memory**: 512Mi RAM with 512Mi JVM heap
 - **API**: REST API for table operations
+- **Concurrency**: Supports multiple simultaneous write operations
 
 ### Storage Integration
-- **Backend**: MinIO tenant with dedicated `iceberg` bucket (HTTP-only)
+- **Metadata**: PostgreSQL database via CNPG (concurrent-safe)
+- **Data Storage**: MinIO tenant with dedicated `iceberg` bucket (HTTP-only)
 - **Format**: Apache Iceberg tables with S3-compatible storage
 - **Features**: Time travel, schema evolution, ACID transactions
-- **Status**: ✅ Fully functional - SSL certificate issues resolved
+- **Concurrency**: ✅ Supports 15+ simultaneous write operations
+- **Status**: ✅ Production ready with PostgreSQL backend
 
 ## Access Methods
 
@@ -185,9 +211,23 @@ The monitoring stack includes pre-configured dashboards for:
    ```bash
    kubectl logs -n iceberg-system deployment/iceberg-rest-catalog
    kubectl get svc -n iceberg-system iceberg-rest-catalog
+   curl http://10.0.0.247:8181/v1/config
    ```
 
-3. **MinIO connectivity problems**:
+3. **PostgreSQL backend issues**:
+   ```bash
+   # Check PostgreSQL cluster status
+   kubectl get clusters.postgresql.cnpg.io -n iceberg-system
+   kubectl describe cluster iceberg-postgres -n iceberg-system
+
+   # Check PostgreSQL logs
+   kubectl logs iceberg-postgres-1 -n iceberg-system -c postgres
+
+   # Test database connectivity
+   kubectl exec -it iceberg-postgres-1 -n iceberg-system -- psql -U postgres -d iceberg_catalog -c "SELECT version();"
+   ```
+
+4. **MinIO connectivity problems**:
    ```bash
    # Test MinIO connectivity from within cluster
    kubectl run -it --rm debug --image=busybox --restart=Never -- sh
@@ -195,13 +235,16 @@ The monitoring stack includes pre-configured dashboards for:
    wget -qO- http://minio.minio-tenant.svc.cluster.local:9000
    ```
 
-4. **Query failures**:
+5. **Query failures**:
    ```bash
    # Check Trino coordinator logs
    kubectl logs -n iceberg-system deployment/trino-coordinator
-   
+
    # Check worker logs
    kubectl logs -n iceberg-system deployment/trino-worker
+
+   # Verify PostgreSQL metadata backend is healthy
+   kubectl get clusters.postgresql.cnpg.io -n iceberg-system
    ```
 
 ### Health Checks
