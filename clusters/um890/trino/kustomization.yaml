@@ -10,6 +10,8 @@ namespace: iceberg-system
 resources:
   - helmrelease.yaml
   - iceberg-rest-catalog.yaml
+  - postgres-cluster.yaml
+  - postgres-secret.yaml
   - services.yaml
   - ingress.yaml
 

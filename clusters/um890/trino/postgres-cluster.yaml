@@ -1,0 +1,80 @@
+# PostgreSQL cluster for Iceberg REST Catalog
+# Provides concurrent-safe metadata storage for Iceberg tables
+# Replaces SQLite backend to support multiple simultaneous write operations
+
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: iceberg-postgres
+  namespace: iceberg-system
+  labels:
+    app.kubernetes.io/name: iceberg-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: iceberg-rest-catalog
+spec:
+  instances: 1  # Single instance for homelab (no HA needed)
+  
+  # PostgreSQL configuration optimized for Iceberg metadata operations
+  postgresql:
+    parameters:
+      # Connection settings for concurrent operations
+      max_connections: "100"          # Support multiple Trino workers
+      shared_buffers: "128MB"         # Adequate for metadata operations
+      effective_cache_size: "256MB"   # Cache for frequent metadata queries
+      work_mem: "4MB"                 # Memory for sorting/hashing operations
+      maintenance_work_mem: "64MB"    # Memory for maintenance operations
+      
+      # Performance tuning for metadata workload
+      random_page_cost: "1.1"         # SSD-optimized
+      effective_io_concurrency: "200" # SSD concurrent I/O
+      
+      # Logging for troubleshooting
+      log_statement: "none"
+      log_min_duration_statement: "1000"  # Log slow queries
+      
+      # Monitoring
+      shared_preload_libraries: "pg_stat_statements"
+
+  # Bootstrap with Iceberg-specific database
+  bootstrap:
+    initdb:
+      database: iceberg_catalog
+      owner: iceberg_user
+      secret:
+        name: iceberg-postgres-credentials
+        
+  # Storage configuration
+  storage:
+    size: 10Gi  # Metadata storage - should be sufficient for most homelab use
+    storageClass: longhorn
+    
+  # Resource allocation
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+      
+  # Monitoring configuration
+  monitoring:
+    enabled: true
+    
+  # Backup configuration to MinIO
+  backup:
+    retentionPolicy: "30d"
+    barmanObjectStore:
+      destinationPath: "s3://postgres-backups/iceberg-catalog"
+      s3Credentials:
+        accessKeyId:
+          name: minio-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: minio-backup-credentials
+          key: SECRET_ACCESS_KEY
+      endpointURL: "http://10.0.0.241:80"  # MinIO S3 API
+      wal:
+        retention: "7d"
+      data:
+        retention: "30d"

@@ -52,6 +52,23 @@ spec:
               value: "true"
             - name: AWS_REGION
               value: "us-west-1"
+
+            # PostgreSQL backend configuration (replaces SQLite)
+            - name: CATALOG_JDBC_DRIVER
+              value: "org.postgresql.Driver"
+            - name: CATALOG_JDBC_URL
+              value: "jdbc:postgresql://iceberg-postgres-rw.iceberg-system.svc.cluster.local:5432/iceberg_catalog"
+            - name: CATALOG_JDBC_USER
+              valueFrom:
+                secretKeyRef:
+                  name: iceberg-postgres-credentials
+                  key: username
+            - name: CATALOG_JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: iceberg-postgres-credentials
+                  key: password
+
             # JVM configuration
             - name: JAVA_OPTS
               value: "-Xmx512m -Xms512m"
