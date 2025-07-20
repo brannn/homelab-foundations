@@ -31,9 +31,6 @@ spec:
       # Logging for troubleshooting
       log_statement: "none"
       log_min_duration_statement: "1000"  # Log slow queries
-      
-      # Monitoring
-      shared_preload_libraries: "pg_stat_statements"
 
   # Bootstrap with Iceberg-specific database
   bootstrap:
