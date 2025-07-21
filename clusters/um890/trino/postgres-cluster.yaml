@@ -53,7 +53,11 @@ spec:
     limits:
       cpu: 500m
       memory: 512Mi
-      
+
+  # Monitoring configuration
+  monitoring:
+    enabled: true
+
   # Backup configuration to MinIO
   backup:
     retentionPolicy: "30d"
