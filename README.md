@@ -28,7 +28,7 @@ Homelab Foundations provides a complete GitOps foundation for single-node Kubern
 - **Data Lake**: Apache Iceberg REST Catalog for ACID transactions and schema evolution - *Tabular REST Catalog v0.1.0*
 - **Messaging System**: NATS with JetStream for high-performance IoT data ingestion - *Chart version 1.1.12, NATS v2.10.11*
 - **Analytics Database**: ClickHouse columnar database for real-time analytics - *Altinity Operator v0.25.0, ClickHouse v25.6.3*
-- **Workflow Engine**: Temporal workflow orchestration platform - *Chart version >=0.64.0, Temporal v1.28.0*
+- **Workflow Engine**: Temporal workflow orchestration platform with optimized PostgreSQL backend - *Chart version >=0.64.0, Temporal v1.28.0*
 
 ## Architecture Decisions
 
@@ -61,7 +61,7 @@ Homelab Foundations provides a complete GitOps foundation for single-node Kubern
 - **Trino**: ~10Gi memory savings (coordinator + worker)
 - **NATS**: ~512Mi memory savings
 - **Monitoring**: ~2.5Gi memory savings (Prometheus + Grafana)
-- **Temporal**: ~2.3Gi memory savings when scaled down
+- **Temporal**: ~2.6Gi memory savings when scaled down (performance-optimized)
 
 **Foundation Services (keep running):**
 - **Longhorn CSI**: Required for all persistent storage
@@ -426,7 +426,7 @@ For detailed examples, see `examples/applications/database-app/` and `clusters/u
 - **[Trino Guide](docs/TRINO_GUIDE.md)** - Analytics engine and Iceberg data lake usage
 - **[NATS Guide](docs/NATS_GUIDE.md)** - Messaging system and JetStream for IoT data streams
 - **[ClickHouse Guide](docs/CLICKHOUSE_GUIDE.md)** - Real-time analytics database for IoT data processing
-- **[Temporal Guide](docs/TEMPORAL_GUIDE.md)** - Workflow orchestration platform for durable execution
+- **[Temporal Guide](docs/TEMPORAL_GUIDE.md)** - Workflow orchestration platform with performance-optimized PostgreSQL backend
 - **[Resource Management Guide](docs/RESOURCE_MANAGEMENT.md)** - Scaling services to zero for resource conservation
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING_GUIDE.md)** - Problem diagnosis and fixes
 
