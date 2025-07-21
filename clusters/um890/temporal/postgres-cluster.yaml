@@ -46,10 +46,6 @@ spec:
       memory: 512Mi  # Hard limit for homelab resource management
       cpu: 200m      # Burst capability
 
-  # Monitoring configuration
-  monitoring:
-    enabled: true
-
   # Backup configuration (using validated CNPG setup)
   backup:
     retentionPolicy: "14d"  # Shorter retention for homelab
