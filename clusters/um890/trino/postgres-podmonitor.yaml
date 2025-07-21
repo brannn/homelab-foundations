@@ -1,0 +1,24 @@
+# PodMonitor for CNPG PostgreSQL metrics
+# Enables Prometheus to scrape PostgreSQL metrics directly from pods
+
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cnpg-postgres-metrics
+  namespace: iceberg-system
+  labels:
+    app.kubernetes.io/name: cnpg-postgres
+    app.kubernetes.io/component: database
+    prometheus: kube-prometheus
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: iceberg-postgres
+  podMetricsEndpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+    scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+    - iceberg-system

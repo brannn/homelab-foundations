@@ -11,6 +11,7 @@ resources:
   - helmrelease.yaml
   - iceberg-rest-catalog.yaml
   - postgres-cluster.yaml
+  - postgres-podmonitor.yaml
   - services.yaml
   - ingress.yaml
 
