@@ -10,15 +10,15 @@ metadata:
 spec:
   instances: 1  # Single instance - no HA needed for homelab
 
-  # PostgreSQL configuration optimized for minimal resource usage
+  # PostgreSQL configuration optimized for Temporal workload
   postgresql:
     parameters:
-      # Minimal connection settings
-      max_connections: "50"          # Reduced from default 100
-      shared_buffers: "64MB"         # Minimal shared buffer
-      effective_cache_size: "128MB"  # Conservative cache size
-      work_mem: "1MB"                # Minimal work memory
-      maintenance_work_mem: "32MB"   # Reduced maintenance memory
+      # Connection settings for Temporal
+      max_connections: "50"          # Adequate for Temporal services
+      shared_buffers: "128MB"        # Increased for better performance
+      effective_cache_size: "384MB"  # Increased cache size
+      work_mem: "2MB"                # Increased for sorting operations
+      maintenance_work_mem: "64MB"   # Increased maintenance memory
 
       # Logging (minimal for homelab)
       log_statement: "none"
@@ -37,13 +37,13 @@ spec:
     size: 10Gi  # Reduced from 20Gi - sufficient for homelab workflows
     storageClass: longhorn
 
-  # Minimal resource allocation (512Mi total)
+  # Optimized resource allocation for better performance
   resources:
     requests:
-      memory: 384Mi  # Minimal PostgreSQL memory
+      memory: 512Mi  # Increased for better performance
       cpu: 100m      # Low CPU requirement
     limits:
-      memory: 512Mi  # Hard limit for homelab resource management
+      memory: 768Mi  # Increased limit to reduce memory pressure
       cpu: 200m      # Burst capability
 
   # Backup configuration (using validated CNPG setup)
