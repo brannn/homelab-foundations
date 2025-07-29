@@ -28,10 +28,6 @@ spec:
       merge_tree/parts_to_delay_insert: 150      # Delay inserts earlier
       merge_tree/parts_to_throw_insert: 300      # Throw errors earlier
 
-      # Memory management
-      max_memory_usage: 1610612736               # 1.5GB (75% of 2GB limit)
-      max_memory_usage_for_user: 1610612736      # 1.5GB per user
-
       # Reduce background activity when idle
       background_schedule_pool_size: 2           # Reduce scheduler threads (default: 16)
       background_fetches_pool_size: 2            # Reduce fetch threads (default: 8)
