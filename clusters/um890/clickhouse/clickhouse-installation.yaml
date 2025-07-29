@@ -20,6 +20,24 @@ spec:
       keep_alive_timeout: 3
       max_concurrent_queries: 100
 
+      # Background processing optimization for idle state
+      background_pool_size: 2                    # Reduce background threads (default: 16)
+      background_merges_mutations_concurrency_ratio: 2  # Reduce merge concurrency
+      max_bytes_to_merge_at_max_space_in_pool: 1073741824  # 1GB max merge size
+      merge_tree/max_parts_in_total: 10000       # Reduce parts threshold
+      merge_tree/parts_to_delay_insert: 150      # Delay inserts earlier
+      merge_tree/parts_to_throw_insert: 300      # Throw errors earlier
+
+      # Memory management
+      max_memory_usage: 1610612736               # 1.5GB (75% of 2GB limit)
+      max_memory_usage_for_user: 1610612736      # 1.5GB per user
+
+      # Reduce background activity when idle
+      background_schedule_pool_size: 2           # Reduce scheduler threads (default: 16)
+      background_fetches_pool_size: 2            # Reduce fetch threads (default: 8)
+      background_move_pool_size: 2               # Reduce move threads (default: 8)
+      background_common_pool_size: 2             # Reduce common threads (default: 8)
+
       # Enable metrics for Prometheus
       prometheus/endpoint: "/metrics"
       prometheus/port: 9363
@@ -34,9 +52,11 @@ spec:
       default/quota: default
       
     profiles:
-      default/max_memory_usage: 1073741824  # 1GB
+      default/max_memory_usage: 1610612736  # 1.5GB (increased to match settings)
       default/use_uncompressed_cache: 0
       default/load_balancing: random
+      default/max_execution_time: 300       # 5 minutes max query time
+      default/max_memory_usage_for_user: 1610612736  # 1.5GB per user
       
     quotas:
       default/interval/duration: 3600
