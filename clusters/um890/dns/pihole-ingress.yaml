@@ -6,6 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: haproxy
     cert-manager.io/cluster-issuer: selfsigned-issuer
+    external-dns.alpha.kubernetes.io/target: "10.0.0.245"  # HAProxy Ingress IP
     haproxy.org/ssl-redirect: "false"  # Allow HTTP for homelab
     haproxy.org/timeout-http-request: "30s"
     haproxy.org/timeout-connect: "10s"
