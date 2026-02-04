@@ -5,6 +5,7 @@ resources:
   - ../../infrastructure/helm-repositories
   - metallb
   - cert-manager
+  - cert-manager/cluster-issuer-kustomization.yaml
   - haproxy-ingress
   - cnpg  # CloudNativePG operator for PostgreSQL management
   - monitoring
