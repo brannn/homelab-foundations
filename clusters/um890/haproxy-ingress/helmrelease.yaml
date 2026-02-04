@@ -19,7 +19,6 @@ spec:
       ingressClass: haproxy
       defaultTLSSecret:
         enabled: true
-        secretNamespace: haproxy-controller
         secret: wildcard-homelab-local-tls
       service:
         type: LoadBalancer
