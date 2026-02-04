@@ -4,7 +4,14 @@ metadata:
   name: longhorn-system
   labels:
     name: longhorn-system
-# MinIO namespaces managed by Helmfile
+---
+# Garage namespace managed by Helmfile
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: garage
+  labels:
+    name: garage
 ---
 apiVersion: v1
 kind: Namespace

@@ -12,6 +12,6 @@ resources:
   - temporal
   - trino
   - clickhouse
-  - minio  # MinIO ingresses (MinIO itself managed by Helmfile)
+  - garage  # Garage ingresses (Garage itself managed by Helmfile)
   - longhorn  # Longhorn ingresses (Longhorn itself managed by Helmfile)
   - dns  # Pi-hole DNS server

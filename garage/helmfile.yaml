@@ -1,0 +1,16 @@
+# Garage Deployment Helmfile
+# Replaces MinIO as the S3-compatible object storage for homelab
+# Garage is lightweight, open-source (AGPL-3.0), and perfect for homelab scale
+
+repositories:
+  - name: garage
+    url: https://garagehq.github.io/helm
+
+releases:
+  - name: garage
+    namespace: garage
+    createNamespace: true
+    chart: garage/garage
+    version: ">=0.1.0"
+    values:
+      - values.yaml

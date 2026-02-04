@@ -53,9 +53,9 @@ spec:
       destinationPath: "s3://postgres-backups/temporal"
       s3Credentials:
         accessKeyId:
-          name: minio-backup-credentials
+          name: garage-backup-credentials
           key: ACCESS_KEY_ID
         secretAccessKey:
-          name: minio-backup-credentials
+          name: garage-backup-credentials
           key: SECRET_ACCESS_KEY
-      endpointURL: "http://10.0.0.241:80"  # MinIO S3 API LoadBalancer endpoint
+      endpointURL: "http://10.0.0.241:80"  # Garage S3 API LoadBalancer endpoint

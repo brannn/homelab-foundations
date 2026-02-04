@@ -189,10 +189,10 @@ spec:
       - name: MINIO_ACCESS_KEY
         valueFrom:
           secretKeyRef:
-            name: minio-credentials
+            name: garage-credentials
             key: access-key
       - name: MINIO_SECRET_KEY
         valueFrom:
           secretKeyRef:
-            name: minio-credentials
+            name: garage-credentials
             key: secret-key

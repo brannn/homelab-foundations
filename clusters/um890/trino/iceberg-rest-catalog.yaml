@@ -41,12 +41,12 @@ spec:
             - name: CATALOG_S3_ACCESS__KEY__ID
               valueFrom:
                 secretKeyRef:
-                  name: minio-credentials
+                  name: garage-credentials
                   key: access-key
             - name: CATALOG_S3_SECRET__ACCESS__KEY
               valueFrom:
                 secretKeyRef:
-                  name: minio-credentials
+                  name: garage-credentials
                   key: secret-key
             - name: CATALOG_S3_PATH__STYLE__ACCESS
               value: "true"

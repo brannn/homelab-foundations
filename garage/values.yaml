@@ -1,0 +1,149 @@
+# Garage Configuration Values
+# Lightweight S3-compatible object storage for homelab
+# Replaces MinIO for AGPL-3.0 open-source compliance
+
+# Garage Cluster Configuration
+garage:
+  # Cluster layout - single node homelab
+  layout:
+    replication_factor: 1
+  
+  # S3 API Configuration
+  s3:
+    enabled: true
+    region: us-east-1
+    api:
+      # S3 API endpoint configuration
+      rootDomain: garage.homelab.local
+      s3ApiDomain: s3.garage.homelab.local
+      webDomain: web.garage.homelab.local
+    
+    # Default credentials - CHANGE FOR YOUR DEPLOYMENT
+    accessKeyId: garage  # CHANGE THIS
+    secretAccessKey: garage123  # CHANGE THIS to a strong password
+  
+  # Resource limits - Garage is lightweight
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  
+  # Storage configuration - use 4TB drive
+  persistence:
+    enabled: true
+    # Use Longhorn storage class
+    storageClass: longhorn
+    # Use full 4TB drive
+    size: 4000Gi
+    # Data path for Garage
+    dataDir: /var/lib/garage/data
+  
+  # Security context
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+# Service Configuration
+service:
+  # S3 API service
+  type: LoadBalancer
+  loadBalancerIP: 10.0.0.241  # Same IP as MinIO S3 API
+  port: 80
+  targetPort: 3900
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "garage-shared"
+
+# Additional services for different access patterns
+services:
+  # S3 API (HTTP)
+  - name: garage-s3
+    type: LoadBalancer
+    loadBalancerIP: 10.0.0.241
+    port: 80
+    targetPort: 3900
+    annotations:
+      metallb.universe.tf/allow-shared-ip: "garage-shared"
+  
+  # Admin API (if needed)
+  - name: garage-admin
+    type: LoadBalancer
+    loadBalancerIP: 10.0.0.242  # Adjacent IP for admin access
+    port: 3903
+    targetPort: 3903
+    annotations:
+      metallb.universe.tf/allow-shared-ip: "garage-shared"
+
+# Bucket auto-creation
+# These buckets will be created automatically on deployment
+buckets:
+  - name: iceberg
+    # For Trino + Iceberg data lake
+    versioning: false
+    quota: null  # No quota limit
+  
+  - name: postgres-backups
+    # For CNPG PostgreSQL backups
+    versioning: false
+    quota: null
+  
+  - name: longhorn-backups
+    # For Longhorn volume backups (optional)
+    versioning: true  # Enable versioning for backups
+    quota: null
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  # Export metrics for Prometheus
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    interval: 30s
+    scrapeTimeout: 10s
+
+# Logging configuration
+logging:
+  level: info  # Options: debug, info, warn, error
+
+# Deployment configuration
+deployment:
+  replicas: 1  # Single node homelab
+  strategy:
+    type: Recreate
+  
+  # Node selector for placement
+  nodeSelector: {}
+  
+  # Tolerations
+  tolerations: []
+
+# Pod configuration
+pod:
+  annotations: {}
+  labels:
+    app.kubernetes.io/name: garage
+    app.kubernetes.io/component: object-storage
+    app.kubernetes.io/part-of: homelab-foundations
+  
+# RBAC - create necessary service accounts and roles
+rbac:
+  create: true
+  serviceAccount:
+    create: true
+    name: garage
+
+# Ingress configuration (optional, if you want HTTP access via domain)
+ingress:
+  enabled: false  # Using LoadBalancer instead for homelab
+  className: haproxy
+  annotations: {}
+  hosts:
+    - host: s3.garage.homelab.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []

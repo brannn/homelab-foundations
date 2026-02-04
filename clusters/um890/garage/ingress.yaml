@@ -1,0 +1,34 @@
+# Garage S3 API Ingress
+# Provides HTTP access to Garage S3 API via homelab.local domain
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garage-s3
+  namespace: garage
+  annotations:
+    # Use HAProxy ingress for routing
+    kubernetes.io/ingress.class: haproxy
+    # Enable path-based routing
+    haproxy.org/forwarded-for: "true"
+    # Set timeout for large file uploads
+    haproxy.org/timeout-connect: "10s"
+    haproxy.org/timeout-server: "600s"
+    haproxy.org/timeout-client: "600s"
+  labels:
+    app.kubernetes.io/name: garage
+    app.kubernetes.io/component: s3-api
+    app.kubernetes.io/part-of: homelab-foundations
+spec:
+  rules:
+    - host: garage.homelab.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garage-s3
+                port:
+                  number: 80

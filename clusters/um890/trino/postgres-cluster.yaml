@@ -54,16 +54,16 @@ spec:
       cpu: 500m
       memory: 512Mi
 
-  # Backup configuration to MinIO
+  # Backup configuration to Garage
   backup:
     retentionPolicy: "30d"
     barmanObjectStore:
       destinationPath: "s3://postgres-backups/iceberg-catalog"
       s3Credentials:
         accessKeyId:
-          name: minio-backup-credentials
+          name: garage-backup-credentials
           key: ACCESS_KEY_ID
         secretAccessKey:
-          name: minio-backup-credentials
+          name: garage-backup-credentials
           key: SECRET_ACCESS_KEY
-      endpointURL: "http://10.0.0.241:80"  # MinIO S3 API
+      endpointURL: "http://10.0.0.241:80"  # Garage S3 API

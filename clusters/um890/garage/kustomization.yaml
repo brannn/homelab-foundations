@@ -1,0 +1,8 @@
+# Garage Ingress Configuration
+# Garage object storage is managed via Helmfile
+# This directory contains only ingress configurations for GitOps
+
+namespace: garage
+
+resources:
+  - ingress.yaml

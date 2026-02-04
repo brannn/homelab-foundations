@@ -14,8 +14,7 @@ data:
     address=/iceberg.homelab.local/10.0.0.245
     address=/longhorn.homelab.local/10.0.0.245
     address=/nats.homelab.local/10.0.0.245
-    address=/minio-console.homelab.local/10.0.0.245
-    address=/minio.homelab.local/10.0.0.245
+    address=/garage.homelab.local/10.0.0.241
     address=/temporal.homelab.local/10.0.0.245
 
     # Pi-hole itself
