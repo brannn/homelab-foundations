@@ -1,0 +1,14 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cert-manager-cluster-issuer
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/um890/cert-manager-cluster-issuer
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: homelab-foundations
+  dependsOn:
+    - name: cert-manager
