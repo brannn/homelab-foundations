@@ -7,6 +7,6 @@ releases:
     namespace: longhorn-system
     createNamespace: true
     chart: longhorn/longhorn
-    version: ">=1.5.0"
+    version: "1.7.2"
     values:
       - longhorn-values.yaml
