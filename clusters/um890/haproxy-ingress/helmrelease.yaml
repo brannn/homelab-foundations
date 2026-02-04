@@ -17,6 +17,9 @@ spec:
     controller:
       name: haproxy-ingress
       ingressClass: haproxy
+      defaultTLSSecret:
+        enabled: true
+        secret: haproxy-controller/wildcard-homelab-local-tls
       service:
         type: LoadBalancer
         loadBalancerIP: 10.0.0.245  # Fixed IP for HAProxy ingress
