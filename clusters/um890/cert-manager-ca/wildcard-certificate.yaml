@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-homelab-local
+  namespace: haproxy-controller
+spec:
+  secretName: wildcard-homelab-local-tls
+  duration: 8760h  # 1 year
+  renewBefore: 720h  # 30 days
+  commonName: "*.homelab.local"
+  dnsNames:
+    - "*.homelab.local"
+    - "homelab.local"
+  issuerRef:
+    name: homelab-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

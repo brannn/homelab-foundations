@@ -1,0 +1,53 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: external-dns
+      version: '1.15.2'
+      sourceRef:
+        kind: HelmRepository
+        name: external-dns
+        namespace: flux-system
+  values:
+    # Pi-hole provider configuration
+    provider:
+      name: pihole
+
+    # Pi-hole connection settings
+    extraArgs:
+      - --pihole-server=http://pihole-web.dns-system.svc.cluster.local
+      - --pihole-password=homelab123
+      - --pihole-api-version=6
+
+    # Only manage homelab.local domain
+    domainFilters:
+      - homelab.local
+
+    # Watch Ingress and Service resources
+    sources:
+      - ingress
+      - service
+
+    # Policy: sync will create and delete records
+    policy: sync
+
+    # Registry to track ownership of DNS records
+    registry: txt
+    txtOwnerId: external-dns
+
+    # Resource limits
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+    # Log level
+    logLevel: info

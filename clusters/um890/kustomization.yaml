@@ -6,6 +6,8 @@ resources:
   - metallb
   - metallb-config  # IPAddressPool and L2Advertisement
   - cert-manager
+  - cert-manager-ca  # Self-signed CA for *.homelab.local
   - haproxy-ingress
   - cnpg  # CloudNativePG operator for PostgreSQL management
   - dns  # Pi-hole DNS server
+  - external-dns  # Auto-create DNS records from Ingress annotations

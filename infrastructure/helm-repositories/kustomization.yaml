@@ -12,4 +12,5 @@ resources:
   - nats.yaml
   - temporal.yaml
   - trino.yaml
+  - external-dns.yaml
   # MinIO charts managed by Helmfile

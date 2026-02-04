@@ -9,7 +9,6 @@ namespace: dns-system
 
 resources:
   - namespace.yaml
-  - pihole-configmap.yaml
   - pihole-deployment.yaml
   - pihole-services.yaml
   - pihole-ingress.yaml
