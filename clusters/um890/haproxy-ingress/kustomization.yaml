@@ -3,3 +3,4 @@ kind: Kustomization
 namespace: haproxy-controller
 resources:
   - helmrelease.yaml
+  - wildcard-certificate.yaml
