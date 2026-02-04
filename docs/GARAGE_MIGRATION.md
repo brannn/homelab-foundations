@@ -1,12 +1,19 @@
-# Garage Migration Summary
+# Garage Object Storage Setup
 
 **Date**: February 3, 2026  
-**Purpose**: Replace MinIO with Garage for AGPL-3.0 open-source compliance  
-**Status**: ✅ Complete
+**Purpose**: Set up Garage as the S3-compatible object storage for homelab-foundations  
+**Status**: ✅ Ready for Deployment
 
 ## Overview
 
-MinIO has shifted to commercial licensing for production deployments. This migration replaces MinIO with **Garage**, a lightweight, S3-compatible object storage system written in Rust that is fully open-source (AGPL-3.0) and perfect for homelab deployments.
+**Garage** is a lightweight, S3-compatible object storage system written in Rust that is fully open-source (AGPL-3.0) and perfect for homelab deployments. This is a fresh installation on the UM890 Pro - there is no migration from MinIO.
+
+Garage was chosen over MinIO because:
+- Fully open-source (AGPL-3.0) - no commercial licensing restrictions
+- Lightweight: 512MB-1GB RAM vs MinIO's 2-4GB
+- Perfect scale for homelab deployments
+- Simpler deployment (single deployment vs operator+tenant)
+- Full S3 API compatibility
 
 ## What Changed
 
@@ -361,13 +368,13 @@ garage bucket create test-bucket
 
 ## Summary
 
-This migration successfully replaces MinIO with Garage, providing:
+Garage is configured as the S3-compatible object storage for the homelab-foundations deployment on UM890 Pro, providing:
 - ✅ Fully open-source solution (AGPL-3.0)
 - ✅ Lower resource requirements (512MB-1GB RAM)
 - ✅ Full S3 API compatibility
 - ✅ Better suited for homelab scale
 - ✅ Simpler deployment and management
 
-All integrations (Trino, Iceberg, CNPG, Temporal) work identically with Garage. Only the endpoint URLs and credential secret names have changed.
+All integrations (Trino, Iceberg, CNPG, Temporal) are configured to use Garage for their S3 object storage needs.
 
 Ready for deployment on UM890 Pro! 🚀
