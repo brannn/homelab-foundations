@@ -7,5 +7,4 @@ resources:
   - cert-manager
   - haproxy-ingress
   - cnpg  # CloudNativePG operator for PostgreSQL management
-  - garage  # Garage ingresses (Garage itself managed by Helmfile)
   - dns  # Pi-hole DNS server

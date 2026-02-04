@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: pihole
-        image: pihole/pihole:2025.02.0
+        image: pihole/pihole:2025.03.0
         ports:
         - containerPort: 53
           name: dns-tcp
@@ -83,7 +83,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: longhorn
+  storageClassName: local-path
   resources:
     requests:
       storage: 1Gi
@@ -96,7 +96,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: longhorn
+  storageClassName: local-path
   resources:
     requests:
       storage: 500Mi
