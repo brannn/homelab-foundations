@@ -27,9 +27,10 @@ spec:
       - name: EXTERNAL_DNS_PIHOLE_API_VERSION
         value: "6"
 
-    # Only manage homelab.local domain
+    # Manage homelab.local and runcell.local domains
     domainFilters:
       - homelab.local
+      - runcell.local
 
     # Watch Ingress and Service resources
     sources:
