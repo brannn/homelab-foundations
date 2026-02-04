@@ -4,3 +4,4 @@ namespace: haproxy-controller
 resources:
   - helmrelease.yaml
   - wildcard-certificate.yaml
+  - wildcard-runcell-certificate.yaml

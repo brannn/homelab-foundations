@@ -20,6 +20,8 @@ spec:
       defaultTLSSecret:
         enabled: true
         secret: wildcard-homelab-local-tls
+      extraTLSSecrets:
+        - wildcard-runcell-local-tls
       service:
         type: LoadBalancer
         loadBalancerIP: 10.0.0.245  # Fixed IP for HAProxy ingress

@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-runcell-local
+  namespace: haproxy-controller
+spec:
+  secretName: wildcard-runcell-local-tls
+  duration: 8760h  # 1 year
+  renewBefore: 720h  # 30 days
+  commonName: "*.runcell.local"
+  dnsNames:
+    - "*.runcell.local"
+    - "runcell.local"
+  issuerRef:
+    name: homelab-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
