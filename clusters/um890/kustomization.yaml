@@ -4,6 +4,7 @@ resources:
   - namespaces.yaml
   - ../../infrastructure/helm-repositories
   - metallb
+  - metallb-config  # IPAddressPool and L2Advertisement
   - cert-manager
   - haproxy-ingress
   - cnpg  # CloudNativePG operator for PostgreSQL management
