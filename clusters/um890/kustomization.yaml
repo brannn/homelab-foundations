@@ -11,3 +11,4 @@ resources:
   - cnpg  # CloudNativePG operator for PostgreSQL management
   - dns  # Pi-hole DNS server
   - external-dns  # Auto-create DNS records from Ingress annotations
+  - hello-world  # Test app
