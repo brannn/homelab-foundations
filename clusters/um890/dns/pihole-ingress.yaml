@@ -4,24 +4,13 @@ metadata:
   name: pihole
   namespace: dns-system
   annotations:
-    kubernetes.io/ingress.class: haproxy
-    cert-manager.io/cluster-issuer: selfsigned-issuer
     external-dns.alpha.kubernetes.io/target: "10.0.0.245"  # HAProxy Ingress IP
-    haproxy.org/ssl-redirect: "false"  # Allow HTTP for homelab
-    haproxy.org/timeout-http-request: "30s"
-    haproxy.org/timeout-connect: "10s"
-    haproxy.org/timeout-client: "60s"
-    haproxy.org/timeout-server: "60s"
   labels:
     app.kubernetes.io/name: pihole
     app.kubernetes.io/component: ingress
     app.kubernetes.io/service: ingress
 spec:
   ingressClassName: haproxy
-  tls:
-    - hosts:
-        - pihole.homelab.local
-      secretName: pihole-tls
   rules:
     - host: pihole.homelab.local
       http:
