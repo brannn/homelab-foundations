@@ -2,7 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - helmrelease.yaml
-  - clickhouse-installation.yaml
-  - services.yaml
-  - ingress.yaml
-  - servicemonitor.yaml
+  # Phase 2: uncomment after the operator CRDs are installed
+  # - clickhouse-installation.yaml
+  # - services.yaml
+  # - ingress.yaml
+  # - servicemonitor.yaml
