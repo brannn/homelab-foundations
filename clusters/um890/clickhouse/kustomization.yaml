@@ -5,4 +5,4 @@ resources:
   - clickhouse-installation.yaml
   - services.yaml
   - ingress.yaml
-  - servicemonitor.yaml
+  # - servicemonitor.yaml  # Requires Prometheus operator (not deployed)
